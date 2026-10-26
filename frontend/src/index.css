@@ -1,0 +1,98 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --printq-bg: #F8FAFC;
+    --printq-card: #FFFFFF;
+    --printq-border: #E2E8F0;
+    --printq-primary: #4338CA;
+    --printq-primary-hover: #3730A3;
+    --printq-text: #0F172A;
+    --printq-text-secondary: #64748B;
+  }
+
+  .dark {
+    --printq-bg: #0B0A1A;
+    --printq-card: #15142B;
+    --printq-border: #2A284D;
+    --printq-primary: #4F46E5;
+    --printq-primary-hover: #6366F1;
+    --printq-text: #FFFFFF;
+    --printq-text-secondary: #94A3B8;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply antialiased min-h-screen transition-colors duration-300;
+    background-color: var(--printq-bg);
+    color: var(--printq-text);
+    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  }
+
+  .printq-card {
+    background-color: var(--printq-card);
+    border: 1px solid var(--printq-border);
+    color: var(--printq-text);
+  }
+
+  .printq-input {
+    @apply w-full px-4 py-2.5 rounded-lg border border-printq-border bg-printq-card text-printq-text focus:ring-2 focus:ring-printq-primary/20 focus:border-printq-primary outline-none transition-all duration-200;
+  }
+
+  .printq-btn {
+    @apply px-6 py-2.5 rounded-lg font-medium text-white bg-printq-primary hover:bg-printq-primary-hover focus:ring-2 focus:ring-printq-primary/30 focus:outline-none transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed;
+  }
+
+  .printq-btn-secondary {
+    @apply px-6 py-2.5 rounded-lg font-medium text-printq-text bg-printq-card border border-printq-border hover:bg-slate-50/50 hover:border-printq-primary/50 focus:ring-2 focus:ring-printq-primary/20 focus:outline-none transition-all duration-200;
+  }
+
+  .printq-badge {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border;
+  }
+}
+
+@layer components {
+  .printq-container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8;
+  }
+
+  .printq-section-header {
+    @apply flex items-center gap-2 mb-6;
+  }
+
+  .printq-section-title {
+    @apply text-lg font-semibold text-printq-text tracking-tight;
+  }
+
+  .printq-section-subtitle {
+    @apply text-sm text-printq-text-secondary;
+  }
+
+  .printq-form-group {
+    @apply space-y-2;
+  }
+
+  .printq-label {
+    @apply block text-sm font-medium text-printq-text-secondary mb-1;
+  }
+
+  .printq-table-header {
+    @apply bg-printq-card/50 text-printq-text-secondary border-b border-printq-border text-xs uppercase font-semibold tracking-wider;
+  }
+
+  .printq-table-row {
+    @apply border-b border-printq-border hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors duration-200;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
