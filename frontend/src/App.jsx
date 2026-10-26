@@ -3,7 +3,7 @@ import axios from 'axios';
 import {
   Printer, FileText, Settings, Clock, CheckCircle,
   Zap, QrCode, LogIn, LogOut, User,
-  Mail, Lock, Shield, CreditCard, IndianRupee,
+  Phone, Lock, Shield, CreditCard, IndianRupee,
   AlertCircle, Eye, EyeOff, X, Check,
   Sun, Moon, Plus, Minus, RefreshCw, Key, CheckCheck,
   Hash, Search, Filter, CheckSquare, Square, XCircle, Download
@@ -82,6 +82,7 @@ export default function App() {
       if (res.data.authenticated) {
         setUser({
           id: res.data.user_id,
+          phone: res.data.phone,
           email: res.data.email,
           role: res.data.role,
           full_name: res.data.full_name,
@@ -111,10 +112,11 @@ export default function App() {
     return () => clearInterval(interval);
   }, [user]);
 
-  const handleLogin = async (email, password) => {
-    const res = await axios.post(`${API_BASE}/auth/login`, { email, password }, { withCredentials: true });
+  const handleLogin = async (phone, password) => {
+    const res = await axios.post(`${API_BASE}/auth/login`, { phone, password }, { withCredentials: true });
     const u = {
       id: res.data.user_id,
+      phone: res.data.phone,
       email: res.data.email,
       role: res.data.role,
       full_name: res.data.full_name,
@@ -127,10 +129,11 @@ export default function App() {
     fetchState();
   };
 
-  const handleRegister = async (email, password, full_name, usn) => {
-    const res = await axios.post(`${API_BASE}/auth/register`, { email, password, full_name, usn }, { withCredentials: true });
+  const handleRegister = async (phone, password, full_name, usn) => {
+    const res = await axios.post(`${API_BASE}/auth/register`, { phone, password, full_name, usn }, { withCredentials: true });
     const u = {
       id: res.data.user_id,
+      phone: res.data.phone,
       email: res.data.email,
       role: res.data.role,
       full_name: res.data.full_name,
@@ -228,7 +231,7 @@ export default function App() {
                 <div className="flex items-center gap-2.5 bg-gradient-to-r from-indigo-50 to-violet-50 dark:from-slate-800/80 dark:to-slate-800/80 px-4 py-2 rounded-xl border border-indigo-200/60 dark:border-slate-700 shadow-sm">
                   <span className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-emerald-400 to-teal-400 shadow-sm"></span>
                   <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 hidden md:inline max-w-[140px] truncate">
-                    {user.full_name || user.email}
+                    {user.full_name || user.phone || user.email}
                   </span>
                   <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 text-white shadow-md shadow-indigo-500/20">
                     {user.role}
@@ -476,11 +479,11 @@ function StudentPortal({ state, myOrderIds, setMyOrderIds, fetchState, user, onL
             <div className="bg-gradient-to-r from-indigo-50/60 to-violet-50/60 dark:from-slate-800/60 dark:to-slate-800/60 border border-slate-200/70 dark:border-slate-700/70 rounded-2xl p-4 mb-6 flex items-center justify-between shadow-sm">
               <div className="flex items-center gap-3.5">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 text-white font-bold flex items-center justify-center text-sm shadow-md shadow-indigo-600/30 ring-1 ring-white/20">
-                  {(user.full_name || user.email)[0].toUpperCase()}
+                  {(user.full_name || user.phone || user.email || '?')[0].toUpperCase()}
                 </div>
                 <div>
                   <p className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white leading-tight">{user.full_name}</p>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400 font-mono tracking-wide">{user.usn} • {user.email}</p>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 font-mono tracking-wide">{user.usn} • {user.phone || user.email}</p>
                 </div>
               </div>
               <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/60 dark:to-teal-950/60 px-2.5 py-1 rounded-full border border-emerald-200/70 dark:border-emerald-800/70 shadow-sm">
@@ -1429,7 +1432,7 @@ function AdminPanel() {
           <thead className="bg-[#E9EEF5] dark:bg-[#0D1527] text-slate-500 dark:text-slate-400 font-bold border-b border-slate-200 dark:border-slate-800">
             <tr>
               <th className="py-3 px-4">STUDENT NAME & USN</th>
-              <th className="py-3 px-4">COLLEGE EMAIL</th>
+              <th className="py-3 px-4">PHONE NUMBER</th>
               <th className="py-3 px-4">ROLE</th>
               <th className="py-3 px-4">JOINED DATE</th>
               <th className="py-3 px-4 text-right">ACTION</th>
@@ -1442,7 +1445,7 @@ function AdminPanel() {
                   <p className="font-bold text-slate-800 dark:text-slate-200">{u.full_name || '—'}</p>
                   <p className="font-mono text-slate-400 text-[11px]">{u.usn || '—'}</p>
                 </td>
-                <td className="py-3 px-4 font-medium text-slate-600 dark:text-slate-300">{u.email}</td>
+                <td className="py-3 px-4 font-medium text-slate-600 dark:text-slate-300">{u.phone || '—'}</td>
                 <td className="py-3 px-4">
                   <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${u.role === 'admin' ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300' : u.role === 'shopkeeper' ? 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300' : 'bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300'}`}>
                     {u.role}
@@ -1483,24 +1486,25 @@ function AdminPanel() {
 // Auth Modal (Sign In & Registration)
 // ---------------------------------------------------------------------------
 function AuthModal({ tab, setTab, onLogin, onRegister, onClose }) {
-  const [fields, setFields] = useState({ email: '', password: '', confirm: '', full_name: '', usn: '' });
+  const [fields, setFields] = useState({ phone: '', password: '', confirm: '', full_name: '', usn: '' });
   const [showPwd, setShowPwd] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const set = (k) => (e) => setFields(f => ({ ...f, [k]: e.target.value }));
+  const setPhone = (e) => setFields(f => ({ ...f, phone: e.target.value.replace(/\D/g, '').slice(0, 10) }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
+    if (!/^[6-9]\d{9}$/.test(fields.phone)) {
+      setError('Enter a valid 10-digit phone number.');
+      return;
+    }
+
     if (tab === 'register') {
-      const emailLower = fields.email.trim().toLowerCase();
-      if (!emailLower.endsWith('@nmamit.in') && !emailLower.endsWith('@nitte.edu')) {
-        setError('Please enter a valid college email address.');
-        return;
-      }
       if (fields.password !== fields.confirm) {
         setError('Passwords do not match.');
         return;
@@ -1512,9 +1516,9 @@ function AuthModal({ tab, setTab, onLogin, onRegister, onClose }) {
     setLoading(true);
     try {
       if (tab === 'login') {
-        await onLogin(fields.email, fields.password);
+        await onLogin(fields.phone, fields.password);
       } else {
-        await onRegister(fields.email, fields.password, fields.full_name.trim(), fields.usn.trim().toUpperCase());
+        await onRegister(fields.phone, fields.password, fields.full_name.trim(), fields.usn.trim().toUpperCase());
       }
     } catch (err) {
       setError(err.response?.data?.error || 'Something went wrong. Please try again.');
@@ -1525,7 +1529,7 @@ function AuthModal({ tab, setTab, onLogin, onRegister, onClose }) {
   const switchTab = (t) => {
     setTab(t);
     setError('');
-    setFields({ email: '', password: '', confirm: '', full_name: '', usn: '' });
+    setFields({ phone: '', password: '', confirm: '', full_name: '', usn: '' });
   };
 
   return (
@@ -1605,16 +1609,50 @@ function AuthModal({ tab, setTab, onLogin, onRegister, onClose }) {
             </>
           )}
 
+          {tab === 'login' && (
+            <div className="bg-slate-100 dark:bg-slate-800/50 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700/60 text-[11px]">
+              <span className="font-semibold text-slate-500 dark:text-slate-400 block mb-1.5 text-[10px] uppercase tracking-wider">Quick Demo Login:</span>
+              <div className="flex gap-1.5 flex-wrap">
+                <button
+                  type="button"
+                  onClick={() => setFields(f => ({ ...f, phone: '9777777777', password: 'student@netdotcom' }))}
+                  className="px-2 py-1 bg-white dark:bg-slate-700 hover:bg-indigo-50 dark:hover:bg-indigo-950 text-indigo-600 dark:text-indigo-300 rounded-lg font-bold border border-slate-200 dark:border-slate-600 cursor-pointer text-[10px]"
+                >
+                  Student
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFields(f => ({ ...f, phone: '9888888888', password: 'shopkeeper@netdotcom' }))}
+                  className="px-2 py-1 bg-white dark:bg-slate-700 hover:bg-indigo-50 dark:hover:bg-indigo-950 text-indigo-600 dark:text-indigo-300 rounded-lg font-bold border border-slate-200 dark:border-slate-600 cursor-pointer text-[10px]"
+                >
+                  Shopkeeper
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFields(f => ({ ...f, phone: '9999999999', password: 'admin@netdotcom' }))}
+                  className="px-2 py-1 bg-white dark:bg-slate-700 hover:bg-amber-50 dark:hover:bg-amber-950 text-amber-600 dark:text-amber-400 rounded-lg font-bold border border-slate-200 dark:border-slate-600 cursor-pointer text-[10px]"
+                >
+                  Admin
+                </button>
+              </div>
+            </div>
+          )}
+
           <div>
-            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Email Address</label>
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Phone Number</label>
             <div className="relative">
-              <Mail size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Phone size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
-                value={fields.email}
-                onChange={set('email')}
-                type="email"
+                value={fields.phone}
+                onChange={setPhone}
+                type="tel"
                 required
-                placeholder={tab === 'register' ? 'XXXXXXXX@nmamit.in' : 'Email address'}
+                inputMode="numeric"
+                autoComplete="tel-national"
+                maxLength={10}
+                pattern="[6-9][0-9]{9}"
+                title="Enter a valid 10-digit phone number"
+                placeholder="10-digit phone number"
                 className="w-full bg-[#EAEFF5] dark:bg-[#0D1527] border border-slate-300 dark:border-slate-700 rounded-xl pl-9 pr-3 py-2 text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
               />
             </div>
