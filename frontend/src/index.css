@@ -1,98 +1,77 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --printq-bg: #F8FAFC;
-    --printq-card: #FFFFFF;
-    --printq-border: #E2E8F0;
-    --printq-primary: #4338CA;
-    --printq-primary-hover: #3730A3;
-    --printq-text: #0F172A;
-    --printq-text-secondary: #64748B;
+    --bg-main: #F8FAFC;
+    --card-main: #FFFFFF;
+    --border-main: #E2E8F0;
+    --text-primary: #0F172A;
+    --text-secondary: #64748B;
+    --color-navy: #182B49;
+    --color-cobalt: #4169E1;
   }
 
   .dark {
-    --printq-bg: #0B0A1A;
-    --printq-card: #15142B;
-    --printq-border: #2A284D;
-    --printq-primary: #4F46E5;
-    --printq-primary-hover: #6366F1;
-    --printq-text: #FFFFFF;
-    --printq-text-secondary: #94A3B8;
+    --bg-main: #0B111E;
+    --card-main: #111A2E;
+    --border-main: #1E2D4A;
+    --text-primary: #F8FAFC;
+    --text-secondary: #94A3B8;
+    --color-navy: #182B49;
+    --color-cobalt: #4169E1;
   }
 
   html {
     scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   body {
-    @apply antialiased min-h-screen transition-colors duration-300;
-    background-color: var(--printq-bg);
-    color: var(--printq-text);
-    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    font-family: 'Plus Jakarta Sans', Inter, system-ui, -apple-system, sans-serif;
+    transition: background-color 0.2s ease, color 0.2s ease;
   }
 
-  .printq-card {
-    background-color: var(--printq-card);
-    border: 1px solid var(--printq-border);
-    color: var(--printq-text);
+  ::selection {
+    background-color: rgba(65, 105, 225, 0.2);
+    color: #182B49;
   }
 
-  .printq-input {
-    @apply w-full px-4 py-2.5 rounded-lg border border-printq-border bg-printq-card text-printq-text focus:ring-2 focus:ring-printq-primary/20 focus:border-printq-primary outline-none transition-all duration-200;
-  }
-
-  .printq-btn {
-    @apply px-6 py-2.5 rounded-lg font-medium text-white bg-printq-primary hover:bg-printq-primary-hover focus:ring-2 focus:ring-printq-primary/30 focus:outline-none transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed;
-  }
-
-  .printq-btn-secondary {
-    @apply px-6 py-2.5 rounded-lg font-medium text-printq-text bg-printq-card border border-printq-border hover:bg-slate-50/50 hover:border-printq-primary/50 focus:ring-2 focus:ring-printq-primary/20 focus:outline-none transition-all duration-200;
-  }
-
-  .printq-badge {
-    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border;
+  .dark ::selection {
+    background-color: rgba(65, 105, 225, 0.4);
+    color: #F8FAFC;
   }
 }
 
-@layer components {
-  .printq-container {
-    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8;
-  }
-
-  .printq-section-header {
-    @apply flex items-center gap-2 mb-6;
-  }
-
-  .printq-section-title {
-    @apply text-lg font-semibold text-printq-text tracking-tight;
-  }
-
-  .printq-section-subtitle {
-    @apply text-sm text-printq-text-secondary;
-  }
-
-  .printq-form-group {
-    @apply space-y-2;
-  }
-
-  .printq-label {
-    @apply block text-sm font-medium text-printq-text-secondary mb-1;
-  }
-
-  .printq-table-header {
-    @apply bg-printq-card/50 text-printq-text-secondary border-b border-printq-border text-xs uppercase font-semibold tracking-wider;
-  }
-
-  .printq-table-row {
-    @apply border-b border-printq-border hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors duration-200;
-  }
+/* Custom subtle scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 9999px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #1E2D4A;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #2D4166;
 }

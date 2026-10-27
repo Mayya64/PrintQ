@@ -2,11 +2,14 @@ import React, { useState, useEffect, Component } from 'react';
 import axios from 'axios';
 import {
   Printer, FileText, Settings, Clock, CheckCircle,
-  Zap, QrCode, LogIn, LogOut, User,
+  QrCode, LogIn, LogOut, User,
   Mail, Lock, Shield, CreditCard, IndianRupee,
   AlertCircle, Eye, EyeOff, X, Check,
   Sun, Moon, Plus, Minus, RefreshCw, Key, CheckCheck,
-  Hash, Search, Filter, CheckSquare, Square, XCircle, Download
+  Hash, Search, Filter, CheckSquare, Square, XCircle, Download,
+  Layers, ChevronRight, Copy, UploadCloud, Sliders,
+  Check as CheckIcon, CircleDot, AlertTriangle, ArrowRight,
+  Sparkles, File, HardDrive
 } from 'lucide-react';
 
 const API_BASE = 'http://localhost:5000/api';
@@ -18,22 +21,24 @@ const ACCEPTED_FILE_TYPES = '.pdf,.png,.jpg,.jpeg,.webp,.bmp';
 class ErrorBoundary extends Component {
   state = { error: null };
   static getDerivedStateFromError(error) { return { error }; }
-  componentDidCatch(error, info) { console.error('ErrorBoundary:', error, info); }
+  componentDidCatch(error, info) { console.error('ErrorBoundary caught error:', error, info); }
   render() {
     if (this.state.error) {
       return (
-        <div className="min-h-screen flex items-center justify-center p-6 bg-[#E7ECF3] dark:bg-[#0A0F1D]">
-          <div className="bg-[#F3F6FA] dark:bg-[#111A2E] border border-rose-200 dark:border-rose-900/40 rounded-2xl p-6 max-w-md w-full shadow-lg">
-            <div className="flex items-center gap-3 text-rose-600 dark:text-rose-400 mb-2">
-              <AlertCircle size={22} />
-              <h2 className="text-base font-bold">Application Error</h2>
+        <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-[#0B111E]">
+          <div className="bg-white dark:bg-[#111A2E] border border-slate-200 dark:border-[#1E2D4A] rounded-lg p-6 max-w-md w-full shadow-sm text-center">
+            <div className="w-10 h-10 rounded-md bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 flex items-center justify-center mx-auto mb-3 border border-rose-200 dark:border-rose-900/40">
+              <AlertCircle size={20} />
             </div>
-            <p className="text-xs text-slate-600 dark:text-slate-400 mb-4">{this.state.error.message}</p>
+            <h2 className="text-sm font-semibold text-slate-900 dark:text-white mb-1">Application Error</h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 font-mono bg-slate-50 dark:bg-[#0B111E] p-2.5 rounded border border-slate-200 dark:border-[#1E2D4A] text-left overflow-auto max-h-28">
+              {this.state.error.message}
+            </p>
             <button
               onClick={() => this.setState({ error: null })}
-              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 rounded-xl text-xs transition-all cursor-pointer shadow-sm shadow-indigo-600/20"
+              className="w-full bg-[#4169E1] hover:bg-[#3457C7] text-white font-medium py-2 rounded-md text-xs transition-colors cursor-pointer"
             >
-              Reload View
+              Reload Interface
             </button>
           </div>
         </div>
@@ -153,100 +158,124 @@ export default function App() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#E7ECF3] dark:bg-[#0A0F1D]">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-9 h-9 border-3 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-xs font-semibold text-indigo-600 dark:text-indigo-400">Loading PrintQ...</p>
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#0B111E]">
+        <div className="flex items-center gap-2.5 text-xs font-medium text-slate-500">
+          <RefreshCw size={14} className="animate-spin text-[#4169E1]" />
+          <span>Initializing PrintQ workstation...</span>
         </div>
       </div>
     );
   }
 
+  const isShopOpen = Boolean(state.settings?.shop_open);
+
   return (
     <ErrorBoundary>
-      <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#F0F4F8] via-[#E7ECF3] to-[#D1D9E6] dark:from-[#0A0F1D] dark:via-[#0F172A] dark:to-[#111827] text-slate-800 dark:text-slate-100 transition-colors duration-500">
+      <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-[#0B111E] text-slate-800 dark:text-slate-200 antialiased">
 
-        {/* ── Top Navigation ── */}
-        <header className="sticky top-0 z-40 backdrop-blur-xl bg-white/70 dark:bg-slate-900/70 border-b border-slate-200/60 dark:border-slate-700/60 shadow-sm">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 h-17 flex items-center justify-between">
-            {/* Logo */}
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-indigo-600 via-violet-600 to-fuchsia-500 flex items-center justify-center text-white shadow-lg shadow-indigo-600/30 ring-1 ring-white/50 dark:ring-white/10">
-                <Printer size={20} strokeWidth={2.2} />
+        {/* ── Top Navigation / Workstation Header ── */}
+        <header className="sticky top-0 z-40 bg-white dark:bg-[#0E1728] border-b border-slate-200 dark:border-[#1E2D4A] shadow-xs">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-4">
+
+            {/* Left: Product Brand & Station Context */}
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-md bg-[#4169E1] text-white flex items-center justify-center shrink-0 shadow-xs">
+                <Printer size={16} strokeWidth={2.2} className="text-white" />
               </div>
               <div className="flex items-center gap-2">
-                <span className="font-extrabold text-xl tracking-tight text-slate-900 dark:text-white">Print<span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">Q</span></span>
-                <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full bg-gradient-to-r from-indigo-100 to-violet-100 text-indigo-700 dark:from-indigo-950/80 dark:to-violet-950/80 dark:text-indigo-200 border border-indigo-200/80 dark:border-indigo-800 shadow-sm">
-                  Campus
-                </span>
+                <span className="font-bold text-sm tracking-tight text-[#182B49] dark:text-white">Print<span className="text-[#4169E1] dark:text-[#6092FA]">Q</span></span>
+                <span className="text-slate-300 dark:text-slate-700 font-light">/</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Station 1</span>
               </div>
             </div>
 
-            {/* Navigation Actions */}
-            <div className="flex items-center gap-2.5 sm:gap-3">
-              {/* Terminal View Switcher */}
-              {user && (user.role === 'shopkeeper' || user.role === 'admin') && (
-                <div className="hidden sm:flex items-center bg-[#E5EBF2] dark:bg-slate-800/80 p-1 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold">
+            {/* Center: Workstation View Tabs (for Staff / Admin) */}
+            {user && (user.role === 'shopkeeper' || user.role === 'admin') ? (
+              <nav className="flex items-center bg-slate-100 dark:bg-[#111A2E] p-0.5 rounded-md border border-slate-200/80 dark:border-[#1E2D4A] text-xs font-medium">
+                <button
+                  onClick={() => setView('student')}
+                  className={`px-3 py-1 rounded transition-colors cursor-pointer ${
+                    view === 'student'
+                      ? 'bg-white dark:bg-[#182B49] text-[#182B49] dark:text-white shadow-xs font-semibold'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  Student Portal
+                </button>
+                <button
+                  onClick={() => setView('shop')}
+                  className={`px-3 py-1 rounded transition-colors cursor-pointer ${
+                    view === 'shop'
+                      ? 'bg-[#4169E1] text-white shadow-xs font-semibold'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  Shop Terminal
+                </button>
+                {user.role === 'admin' && (
                   <button
-                    onClick={() => setView('student')}
-                    className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${view === 'student' ? 'bg-[#F3F6FA] dark:bg-slate-900 text-indigo-700 dark:text-indigo-300 shadow-xs' : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'}`}
+                    onClick={() => setView('admin')}
+                    className={`px-3 py-1 rounded transition-colors cursor-pointer ${
+                      view === 'admin'
+                        ? 'bg-[#182B49] text-white shadow-xs font-semibold'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                    }`}
                   >
-                    Student
+                    Admin
                   </button>
-                  <button
-                    onClick={() => setView('shop')}
-                    className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${view === 'shop' ? 'bg-indigo-600 text-white shadow-xs shadow-indigo-600/30' : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'}`}
-                  >
-                    Shop Terminal
-                  </button>
-                  {user.role === 'admin' && (
-                    <button
-                      onClick={() => setView('admin')}
-                      className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${view === 'admin' ? 'bg-amber-500 text-white shadow-xs shadow-amber-500/30' : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'}`}
-                    >
-                      Admin
-                    </button>
-                  )}
-                </div>
-              )}
+                )}
+              </nav>
+            ) : (
+              /* Center: Status readout for students */
+              <div className="hidden md:flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+                <span className="inline-flex items-center gap-1.5 font-medium">
+                  <span className={`w-2 h-2 rounded-full ${isShopOpen ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+                  <span className={isShopOpen ? 'text-slate-700 dark:text-slate-200 font-semibold' : 'text-rose-600 dark:text-rose-400 font-semibold'}>
+                    {isShopOpen ? 'Counter Open' : 'Counter Closed'}
+                  </span>
+                </span>
+                <span className="text-slate-300 dark:text-slate-700">•</span>
+                <span>Wait: <strong className="text-slate-800 dark:text-slate-200 font-mono">~{state.stats?.est_wait_mins || 0}m</strong></span>
+                <span className="text-slate-300 dark:text-slate-700">•</span>
+                <span>Queue: <strong className="text-slate-800 dark:text-slate-200 font-mono">{state.stats?.active_orders || 0} jobs</strong></span>
+              </div>
+            )}
 
-              {/* Theme Toggle Button */}
+            {/* Right: Actions, Theme Toggle & User Info */}
+            <div className="flex items-center gap-2">
               <button
                 onClick={toggleTheme}
-                title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-                className="w-9 h-9 rounded-xl flex items-center justify-center bg-[#E5EBF2] hover:bg-[#DDE4EE] dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300/80 dark:border-slate-700 transition-colors cursor-pointer"
+                title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+                className="w-8 h-8 rounded-md flex items-center justify-center bg-white dark:bg-[#111A2E] hover:bg-slate-100 dark:hover:bg-[#152238] text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-[#1E2D4A] transition-colors cursor-pointer"
               >
-                {theme === 'dark' ? (
-                  <Sun size={17} className="text-amber-400" />
-                ) : (
-                  <Moon size={17} className="text-indigo-600" />
-                )}
+                {theme === 'dark' ? <Sun size={15} className="text-amber-400" /> : <Moon size={15} className="text-slate-600" />}
               </button>
 
-              {/* Account / Login */}
               {user ? (
-                <div className="flex items-center gap-2.5 bg-gradient-to-r from-indigo-50 to-violet-50 dark:from-slate-800/80 dark:to-slate-800/80 px-4 py-2 rounded-xl border border-indigo-200/60 dark:border-slate-700 shadow-sm">
-                  <span className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-emerald-400 to-teal-400 shadow-sm"></span>
-                  <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 hidden md:inline max-w-[140px] truncate">
+                <div className="flex items-center gap-2 bg-white dark:bg-[#111A2E] pl-2 pr-1.5 py-1 rounded-md border border-slate-200 dark:border-[#1E2D4A] text-xs">
+                  <span className="w-5 h-5 rounded bg-[#182B49] text-white flex items-center justify-center text-[10px] font-bold">
+                    {(user.full_name || user.email)[0].toUpperCase()}
+                  </span>
+                  <span className="font-medium text-slate-800 dark:text-slate-200 hidden sm:inline max-w-[130px] truncate">
                     {user.full_name || user.email}
                   </span>
-                  <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 text-white shadow-md shadow-indigo-500/20">
+                  <span className="text-[10px] font-mono text-slate-500 uppercase px-1 py-0.2 rounded bg-slate-100 dark:bg-[#1E2D4A]">
                     {user.role}
                   </span>
                   <button
                     onClick={handleLogout}
                     title="Sign Out"
-                    className="text-slate-400 hover:text-rose-400 hover:rotate-90 ml-1 p-0.5 transition-all duration-300 cursor-pointer rounded-lg hover:bg-rose-100 dark:hover:bg-rose-900/30"
+                    className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded transition-colors cursor-pointer"
                   >
-                    <LogOut size={14} />
+                    <LogOut size={13} />
                   </button>
                 </div>
               ) : (
                 <button
                   onClick={() => { setShowAuthModal(true); setAuthTab('login'); }}
-                  className="flex items-center gap-1.5 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all duration-300 cursor-pointer shadow-lg shadow-indigo-600/30 hover:shadow-xl hover:shadow-indigo-600/40 hover:-translate-y-0.5 ring-1 ring-white/20 dark:ring-white/10"
+                  className="inline-flex items-center gap-1.5 bg-[#4169E1] hover:bg-[#3457C7] text-white px-3 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer shadow-xs"
                 >
-                  <LogIn size={16} strokeWidth={2} />
+                  <LogIn size={13} />
                   <span>Sign In</span>
                 </button>
               )}
@@ -254,37 +283,8 @@ export default function App() {
           </div>
         </header>
 
-        {/* ── Status Ticker ── */}
-        <section className="bg-gradient-to-r from-indigo-50 via-white to-violet-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 border-b border-indigo-200/50 dark:border-indigo-900/50 py-3 px-4 text-xs font-medium shadow-sm">
-          <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <span className="relative flex h-3 w-3">
-                <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-60 ${state.settings?.shop_open ? 'bg-gradient-to-r from-emerald-400 to-teal-400' : 'bg-gradient-to-r from-rose-400 to-pink-400'}`}></span>
-                <span className={`relative inline-flex rounded-full h-3 w-3 shadow-lg ${state.settings?.shop_open ? 'bg-gradient-to-r from-emerald-500 to-teal-500' : 'bg-gradient-to-r from-rose-500 to-pink-500'}`}></span>
-              </span>
-              <span className="font-bold text-slate-700 dark:text-slate-300 tracking-wide">
-                Counter Status
-              </span>
-              <span className={`font-bold px-2.5 py-1 rounded-full text-[11px] font-mono uppercase tracking-wider shadow-sm ${state.settings?.shop_open ? 'bg-gradient-to-r from-emerald-100 to-teal-100 text-emerald-800 dark:from-emerald-950/80 dark:to-teal-950/80 dark:text-emerald-300' : 'bg-gradient-to-r from-rose-100 to-pink-100 text-rose-800 dark:from-rose-950/80 dark:to-pink-950/80 dark:text-rose-300'}`}>
-                {state.settings?.shop_open ? 'Open & Ready' : 'Closed'}
-              </span>
-            </div>
-
-            <div className="flex items-center gap-4 text-slate-600 dark:text-slate-400">
-              <div className="flex items-center gap-2 bg-white/80 dark:bg-slate-800/80 px-3 py-1.5 rounded-xl border border-indigo-200/60 dark:border-slate-700 shadow-sm">
-                <Clock size={14} className="text-amber-500" strokeWidth={2} />
-                <span>Wait: <strong className="text-slate-900 dark:text-white">~{state.stats?.est_wait_mins || 0}m</strong></span>
-              </div>
-              <div className="flex items-center gap-2 bg-white/80 dark:bg-slate-800/80 px-3 py-1.5 rounded-xl border border-indigo-200/60 dark:border-slate-700 shadow-sm">
-                <Zap size={14} className="text-indigo-600 dark:text-indigo-400" strokeWidth={2} />
-                <span>Queue: <strong className="text-slate-900 dark:text-white">{state.stats?.active_orders || 0}</strong></span>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ── Main View Area ── */}
-        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-8 sm:py-10">
+        {/* ── Main View Workspace ── */}
+        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-5">
           {view === 'admin' && user?.role === 'admin' ? (
             <AdminPanel />
           ) : view === 'shop' && user && (user.role === 'shopkeeper' || user.role === 'admin') ? (
@@ -301,43 +301,42 @@ export default function App() {
           )}
         </main>
 
-        {/* ── Footer ── */}
-        <footer className="border-t border-indigo-200/40 dark:border-indigo-900/40 py-6 px-4 text-center text-xs text-indigo-500 dark:text-indigo-400 pb-20 sm:pb-6">
-          <p className="flex items-center justify-center gap-1.5 font-medium">
-            <span className="text-sm">Built with</span>
-            <span className="text-xl animate-pulse">💙</span>
-            <span className="font-semibold text-indigo-600 dark:text-indigo-300">Team idk</span>
-          </p>
+        {/* ── Minimal Footer ── */}
+        <footer className="border-t border-slate-200 dark:border-[#1E2D4A] py-3 px-4 text-xs text-slate-400 dark:text-slate-500 pb-16 sm:pb-3">
+          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+            <span>PrintQ Campus Fulfillment System • Central Library Station 1</span>
+            <span className="font-mono text-[11px]">B&W ₹2.00/pg • Stapled +₹5 • Spiral +₹30</span>
+          </div>
         </footer>
 
-        {/* ── Mobile bottom tabs (Shopkeeper / Admin only) ── */}
+        {/* ── Mobile View Tabs (Staff only) ── */}
         {user && (user.role === 'shopkeeper' || user.role === 'admin') && (
-          <div className="sm:hidden fixed bottom-0 left-0 right-0 bg-[#F3F6FA]/95 dark:bg-[#0F172A]/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 flex z-50 py-1">
+          <div className="sm:hidden fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-[#0E1728]/95 backdrop-blur border-t border-slate-200 dark:border-[#1E2D4A] flex z-50 py-1 px-2">
             <button
               onClick={() => setView('student')}
-              className={`flex-1 py-2 text-center text-[11px] font-bold flex flex-col items-center gap-0.5 ${view === 'student' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400'}`}
+              className={`flex-1 py-1.5 text-center text-[11px] font-medium flex flex-col items-center gap-0.5 ${view === 'student' ? 'text-[#4169E1]' : 'text-slate-500'}`}
             >
-              <User size={16} /> Student
+              <User size={15} /> Student
             </button>
             <button
               onClick={() => setView('shop')}
-              className={`flex-1 py-2 text-center text-[11px] font-bold flex flex-col items-center gap-0.5 ${view === 'shop' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400'}`}
+              className={`flex-1 py-1.5 text-center text-[11px] font-medium flex flex-col items-center gap-0.5 ${view === 'shop' ? 'text-[#4169E1]' : 'text-slate-500'}`}
             >
-              <Printer size={16} /> Shop
+              <Printer size={15} /> Terminal
             </button>
             {user.role === 'admin' && (
               <button
                 onClick={() => setView('admin')}
-                className={`flex-1 py-2 text-center text-[11px] font-bold flex flex-col items-center gap-0.5 ${view === 'admin' ? 'text-amber-500' : 'text-slate-400'}`}
+                className={`flex-1 py-1.5 text-center text-[11px] font-medium flex flex-col items-center gap-0.5 ${view === 'admin' ? 'text-[#182B49] dark:text-white' : 'text-slate-500'}`}
               >
-                <Shield size={16} /> Admin
+                <Shield size={15} /> Admin
               </button>
             )}
           </div>
         )}
       </div>
 
-      {/* ── Auth Modal ── */}
+      {/* ── Authentication Modal ── */}
       {showAuthModal && (
         <AuthModal
           tab={authTab}
@@ -352,7 +351,7 @@ export default function App() {
 }
 
 // ---------------------------------------------------------------------------
-// Student Portal
+// Student Portal (Document Ordering & Live Ticket Tracking)
 // ---------------------------------------------------------------------------
 function StudentPortal({ state, myOrderIds, setMyOrderIds, fetchState, user, onLoginRequired }) {
   const [form, setForm] = useState({
@@ -368,6 +367,7 @@ function StudentPortal({ state, myOrderIds, setMyOrderIds, fetchState, user, onL
   const [fileData, setFileData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [checkoutData, setCheckoutData] = useState(null);
+  const [copiedPinId, setCopiedPinId] = useState(null);
 
   const pageCount = fileData
     ? (form.range === 'Custom' ? Math.max(1, form.end - form.start + 1) : fileData.total_pages)
@@ -445,367 +445,440 @@ function StudentPortal({ state, myOrderIds, setMyOrderIds, fetchState, user, onL
     setLoading(false);
   };
 
+  const copyPin = (pin, id) => {
+    navigator.clipboard?.writeText(pin);
+    setCopiedPinId(id);
+    setTimeout(() => setCopiedPinId(null), 2000);
+  };
+
   const myActiveOrders = state.orders.filter(o => myOrderIds.includes(o.id));
+  const isShopOpen = Boolean(state.settings?.shop_open);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-10 items-start animate-in fade-in slide-in-from-bottom-2 duration-700">
-      {/* ── Left Column: Order Form ── */}
-      <div className="lg:col-span-7 space-y-6">
-        <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200/70 dark:border-slate-700/70 rounded-3xl p-5 sm:p-7 shadow-lg shadow-slate-200/60 dark:shadow-slate-900/60 ring-1 ring-white/40 dark:ring-white/5">
-          {/* Guest Sign-in prompt */}
-          {!user && (
-            <div className="bg-gradient-to-r from-indigo-50/50 to-violet-50/50 dark:from-indigo-950/40 dark:to-violet-950/40 border border-indigo-200/60 dark:border-indigo-800/40 rounded-2xl p-4 sm:p-5 mb-5 flex items-start gap-3.5">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center shrink-0 shadow-md shadow-indigo-500/30 ring-1 ring-white/20">
-                <AlertCircle size={18} className="text-white" strokeWidth={2} />
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+
+      {/* ── Left Column: Document Staging & Print Setup ── */}
+      <div className="lg:col-span-7 space-y-4">
+
+        {/* Guest Warning */}
+        {!user && (
+          <div className="bg-white dark:bg-[#111A2E] border border-amber-200 dark:border-amber-900/40 rounded-lg p-3.5 flex items-start gap-3">
+            <AlertTriangle size={16} className="text-amber-500 shrink-0 mt-0.5" />
+            <div className="flex-1 text-xs">
+              <span className="font-semibold text-slate-800 dark:text-slate-200">Sign in to print: </span>
+              <span className="text-slate-500 dark:text-slate-400">Configure your print specifications freely below. Sign in when ready to generate your queue ticket.</span>
+            </div>
+            <button
+              type="button"
+              onClick={onLoginRequired}
+              className="text-xs text-[#4169E1] font-semibold hover:underline shrink-0 cursor-pointer"
+            >
+              Sign In
+            </button>
+          </div>
+        )}
+
+        {/* Authenticated Student Banner */}
+        {user && (
+          <div className="bg-white dark:bg-[#111A2E] border border-slate-200 dark:border-[#1E2D4A] rounded-lg px-4 py-3 flex items-center justify-between text-xs">
+            <div className="flex items-center gap-2.5">
+              <span className="w-6 h-6 rounded bg-[#182B49] text-white flex items-center justify-center font-bold text-[10px]">
+                {(user.full_name || user.email)[0].toUpperCase()}
+              </span>
+              <div>
+                <span className="font-semibold text-slate-900 dark:text-white">{user.full_name || user.email}</span>
+                {user.usn && <span className="text-slate-400 font-mono ml-2">({user.usn})</span>}
               </div>
-              <div className="flex-1">
-                <p className="text-xs sm:text-sm text-slate-900 dark:text-white font-bold tracking-wide">Sign in to place print orders</p>
-                <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">Preview configuration and prices freely. Sign in when ready to generate a queue ticket.</p>
+            </div>
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-800/80">
+              Verified Student
+            </span>
+          </div>
+        )}
+
+        {/* Section 1: File Uploader */}
+        <div className="bg-white dark:bg-[#111A2E] border border-slate-200 dark:border-[#1E2D4A] rounded-lg p-4">
+          <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-100 dark:border-[#1E2D4A]">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              1. Document Upload
+            </h2>
+            <span className="text-[11px] text-slate-400">PDF, PNG, JPG, WEBP</span>
+          </div>
+
+          <div className={`border border-dashed rounded-md p-5 text-center relative transition-colors ${
+            fileData
+              ? 'border-emerald-400 bg-emerald-50/20 dark:bg-emerald-950/20'
+              : 'border-slate-300 dark:border-[#1E2D4A] hover:border-[#4169E1] bg-slate-50/50 dark:bg-[#0B111E]'
+          }`}>
+            <input
+              type="file"
+              accept={ACCEPTED_FILE_TYPES}
+              onChange={handleFileUpload}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+            />
+
+            {fileData ? (
+              <div className="flex items-center justify-between gap-3 text-left">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-9 h-9 rounded bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 flex items-center justify-center shrink-0">
+                    <FileText size={18} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold text-slate-900 dark:text-white truncate" title={fileData.original_filename}>
+                      {fileData.original_filename}
+                    </p>
+                    <p className="text-[11px] text-slate-500 font-mono mt-0.5">
+                      {fileData.total_pages} {fileData.total_pages === 1 ? 'page' : 'pages'} • {fileData.file_type.toUpperCase()}
+                    </p>
+                  </div>
+                </div>
                 <button
-                  onClick={onLoginRequired}
-                  className="mt-3 text-xs sm:text-sm bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white px-4 py-2 rounded-xl font-bold transition-all shadow-md shadow-indigo-600/25 hover:shadow-lg hover:shadow-indigo-600/30 cursor-pointer ring-1 ring-white/20"
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setFileData(null);
+                    setForm(f => ({ ...f, range: 'All', start: 1, end: 1 }));
+                  }}
+                  className="relative z-20 text-xs text-rose-600 dark:text-rose-400 font-medium hover:underline cursor-pointer shrink-0"
                 >
-                  Sign In / Create Account
+                  Replace
+                </button>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center py-2">
+                <UploadCloud size={24} className="text-[#4169E1] mb-1.5" />
+                <p className="text-xs font-medium text-slate-700 dark:text-slate-300">
+                  Click to choose file or drag document here
+                </p>
+                <p className="text-[11px] text-slate-400 mt-0.5">Maximum file size: 50MB</p>
+              </div>
+            )}
+
+            {loading && (
+              <div className="mt-2 text-xs text-[#4169E1] font-medium flex items-center justify-center gap-1.5">
+                <RefreshCw size={12} className="animate-spin" /> Analyzing page count...
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Section 2: Print Specifications */}
+        <form onSubmit={handleCreateOrder} className="bg-white dark:bg-[#111A2E] border border-slate-200 dark:border-[#1E2D4A] rounded-lg p-4 space-y-4">
+          <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-[#1E2D4A]">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              2. Print Specifications
+            </h2>
+            <span className="text-[11px] text-slate-500">Standard: B&W ₹2/pg</span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+            {/* Page Range */}
+            <div>
+              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                Page Range
+              </label>
+              <div className="grid grid-cols-2 gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setForm(f => ({ ...f, range: 'All' }))}
+                  className={`h-8 px-2.5 rounded text-xs font-medium border transition-colors cursor-pointer ${
+                    form.range === 'All'
+                      ? 'bg-[#182B49] text-white border-[#182B49] dark:bg-[#4169E1] dark:border-[#4169E1]'
+                      : 'bg-white dark:bg-[#0B111E] text-slate-700 dark:text-slate-300 border-slate-200 dark:border-[#1E2D4A] hover:bg-slate-50'
+                  }`}
+                >
+                  All ({fileData ? fileData.total_pages : 1})
+                </button>
+                <button
+                  type="button"
+                  disabled={!fileData || fileData.total_pages <= 1}
+                  onClick={() => setForm(f => ({ ...f, range: 'Custom' }))}
+                  className={`h-8 px-2.5 rounded text-xs font-medium border transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${
+                    form.range === 'Custom'
+                      ? 'bg-[#182B49] text-white border-[#182B49] dark:bg-[#4169E1] dark:border-[#4169E1]'
+                      : 'bg-white dark:bg-[#0B111E] text-slate-700 dark:text-slate-300 border-slate-200 dark:border-[#1E2D4A] hover:bg-slate-50'
+                  }`}
+                >
+                  Custom
+                </button>
+              </div>
+
+              {form.range === 'Custom' && fileData && (
+                <div className="mt-2 flex items-center gap-2 text-xs">
+                  <span className="text-slate-500">From</span>
+                  <input
+                    type="number"
+                    min="1"
+                    max={fileData.total_pages}
+                    value={form.start}
+                    onChange={e => setForm(f => ({ ...f, start: Math.max(1, parseInt(e.target.value) || 1) }))}
+                    className="w-14 h-7 text-center font-mono font-bold bg-slate-50 dark:bg-[#0B111E] border border-slate-200 dark:border-[#1E2D4A] rounded outline-none focus:border-[#4169E1]"
+                  />
+                  <span className="text-slate-500">to</span>
+                  <input
+                    type="number"
+                    min={form.start}
+                    max={fileData.total_pages}
+                    value={form.end}
+                    onChange={e => setForm(f => ({ ...f, end: Math.min(fileData.total_pages, parseInt(e.target.value) || form.start) }))}
+                    className="w-14 h-7 text-center font-mono font-bold bg-slate-50 dark:bg-[#0B111E] border border-slate-200 dark:border-[#1E2D4A] rounded outline-none focus:border-[#4169E1]"
+                  />
+                  <span className="text-[11px] text-[#4169E1] font-mono ml-auto">
+                    {Math.max(1, form.end - form.start + 1)} pgs
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Print Sides */}
+            <div>
+              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                Print Sides
+              </label>
+              <div className="grid grid-cols-2 gap-1.5">
+                {['Single', 'Double'].map(side => (
+                  <button
+                    key={side}
+                    type="button"
+                    onClick={() => setForm(f => ({ ...f, sides: side }))}
+                    className={`h-8 px-2.5 rounded text-xs font-medium border transition-colors cursor-pointer ${
+                      form.sides === side
+                        ? 'bg-[#182B49] text-white border-[#182B49] dark:bg-[#4169E1] dark:border-[#4169E1]'
+                        : 'bg-white dark:bg-[#0B111E] text-slate-700 dark:text-slate-300 border-slate-200 dark:border-[#1E2D4A] hover:bg-slate-50'
+                    }`}
+                  >
+                    {side === 'Single' ? '1-Sided' : 'Duplex (2-Sided)'}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Copies Stepper */}
+            <div>
+              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                Copies
+              </label>
+              <div className="flex items-center bg-white dark:bg-[#0B111E] border border-slate-200 dark:border-[#1E2D4A] rounded h-8 px-1">
+                <button
+                  type="button"
+                  onClick={() => setForm(f => ({ ...f, copies: Math.max(1, f.copies - 1) }))}
+                  className="w-6 h-6 rounded flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 cursor-pointer"
+                >
+                  <Minus size={12} />
+                </button>
+                <span className="flex-1 text-center font-mono font-semibold text-xs text-slate-800 dark:text-slate-200">
+                  {form.copies}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setForm(f => ({ ...f, copies: Math.min(50, f.copies + 1) }))}
+                  className="w-6 h-6 rounded flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 cursor-pointer"
+                >
+                  <Plus size={12} />
                 </button>
               </div>
             </div>
-          )}
 
-          {/* Student Profile Ribbon */}
-          {user && (user.full_name || user.usn) && (
-            <div className="bg-gradient-to-r from-indigo-50/60 to-violet-50/60 dark:from-slate-800/60 dark:to-slate-800/60 border border-slate-200/70 dark:border-slate-700/70 rounded-2xl p-4 mb-6 flex items-center justify-between shadow-sm">
-              <div className="flex items-center gap-3.5">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 text-white font-bold flex items-center justify-center text-sm shadow-md shadow-indigo-600/30 ring-1 ring-white/20">
-                  {(user.full_name || user.email)[0].toUpperCase()}
-                </div>
-                <div>
-                  <p className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white leading-tight">{user.full_name}</p>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400 font-mono tracking-wide">{user.usn} • {user.email}</p>
-                </div>
-              </div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/60 dark:to-teal-950/60 px-2.5 py-1 rounded-full border border-emerald-200/70 dark:border-emerald-800/70 shadow-sm">
-                Verified
-              </span>
-            </div>
-          )}
-
-          <form onSubmit={handleCreateOrder} className="space-y-6">
-            {/* Upload Box */}
-            <div className={`border-2 border-dashed rounded-2xl p-6 sm:p-8 text-center transition-all relative ${fileData ? 'border-emerald-400 bg-emerald-50/50 dark:bg-emerald-950/30' : 'border-indigo-200/70 dark:border-slate-700/70 hover:border-indigo-400 bg-gradient-to-br from-indigo-50/30 to-violet-50/30 dark:from-indigo-950/20 dark:to-violet-950/20'}`}>
-              <input
-                type="file"
-                accept={ACCEPTED_FILE_TYPES}
-                onChange={handleFileUpload}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-              />
-
-              {fileData ? (
-                <div className="flex flex-col items-center">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-400 text-white flex items-center justify-center mb-2 shadow-lg shadow-emerald-400/30 ring-1 ring-white/30">
-                    <CheckCircle size={26} strokeWidth={2.2} />
-                  </div>
-                  <p className="text-sm font-bold text-slate-900 dark:text-white max-w-sm truncate">{fileData.original_filename}</p>
-                  <div className="flex items-center gap-2 mt-2">
-                    <span className="text-xs font-bold px-3 py-1 rounded-full bg-gradient-to-r from-emerald-100 to-teal-100 text-emerald-800 dark:from-emerald-900/60 dark:to-teal-900/60 dark:text-emerald-300 ring-1 ring-emerald-200/60">
-                      {fileData.total_pages} {fileData.total_pages === 1 ? 'Page' : 'Pages'}
-                    </span>
-                    <span className="text-xs text-indigo-600 dark:text-indigo-400 font-bold font-mono uppercase tracking-wide ring-1 ring-indigo-200/60 px-2 py-1 rounded-lg">
-                      {fileData.file_type === 'image' ? 'Image' : 'PDF'}
-                    </span>
-                  </div>
+            {/* Finishing & Binding */}
+            <div>
+              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                Finishing / Binding
+              </label>
+              <div className="grid grid-cols-3 gap-1.5">
+                {[
+                  { id: 'None', label: 'None', extra: '₹0' },
+                  { id: 'Stapled', label: 'Staple', extra: '+₹5' },
+                  { id: 'Spiral', label: 'Spiral', extra: '+₹30', disabled: !state.settings?.spiral_enabled }
+                ].map(b => (
                   <button
+                    key={b.id}
                     type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setFileData(null);
-                      setForm(f => ({ ...f, range: 'All', start: 1, end: 1 }));
-                    }}
-                    className="relative z-20 mt-3 text-xs text-slate-500 hover:text-rose-500 font-bold tracking-wide transition-all cursor-pointer hover:underline decoration-rose-500 decoration-2 underline-offset-3"
+                    disabled={b.disabled}
+                    onClick={() => setForm(f => ({ ...f, binding: b.id }))}
+                    className={`h-8 px-2 rounded text-xs border transition-colors cursor-pointer flex items-center justify-between disabled:opacity-40 disabled:cursor-not-allowed ${
+                      form.binding === b.id
+                        ? 'bg-[#182B49] text-white border-[#182B49] dark:bg-[#4169E1] dark:border-[#4169E1] font-semibold'
+                        : 'bg-white dark:bg-[#0B111E] text-slate-700 dark:text-slate-300 border-slate-200 dark:border-[#1E2D4A] hover:bg-slate-50'
+                    }`}
                   >
-                    Change File
+                    <span>{b.label}</span>
+                    <span className="text-[10px] opacity-75 font-mono">{b.extra}</span>
                   </button>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-100 to-violet-100 text-indigo-600 dark:text-indigo-400 dark:from-indigo-900/60 dark:to-violet-900/60 flex items-center justify-center mb-3 shadow-lg ring-1 ring-indigo-200/60">
-                    <Printer size={26} strokeWidth={2} />
-                  </div>
-                  <p className="text-sm font-bold text-slate-900 dark:text-white tracking-wide">Click or drag document to upload</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Accepts PDF, PNG, JPG, JPEG, WEBP</p>
-                </div>
-              )}
-
-              {loading && (
-                <div className="mt-3 flex items-center justify-center gap-2 text-xs font-bold text-indigo-600 dark:text-indigo-400 animate-pulse">
-                  <RefreshCw size={14} className="animate-spin" strokeWidth={2} /> Processing document...
-                </div>
-              )}
-            </div>
-
-            {/* Print Options Card */}
-            <div className="bg-[#E9EEF5] dark:bg-[#0D1527] border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-5">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xs font-extrabold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">Print Options</h3>
-                <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-slate-200/70 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
-                  Station 1 • B&W ₹2/pg
-                </span>
-              </div>
-
-              {/* 1. Page Range */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Pages Selection</label>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setForm(f => ({ ...f, range: 'All' }))}
-                    className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all text-center cursor-pointer ${form.range === 'All' ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-600/25' : 'bg-[#F3F6FA] dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-indigo-300'}`}
-                  >
-                    All Pages ({fileData ? fileData.total_pages : 1})
-                  </button>
-                  <button
-                    type="button"
-                    disabled={!fileData || fileData.total_pages <= 1}
-                    onClick={() => setForm(f => ({ ...f, range: 'Custom' }))}
-                    className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all text-center cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${form.range === 'Custom' ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-600/25' : 'bg-[#F3F6FA] dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-indigo-300'}`}
-                  >
-                    Custom Range
-                  </button>
-                </div>
-
-                {form.range === 'Custom' && fileData && (
-                  <div className="mt-3 flex items-center gap-3 bg-[#F3F6FA] dark:bg-slate-800 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700">
-                    <span className="text-xs text-slate-500 font-medium">Pages:</span>
-                    <input
-                      type="number"
-                      min="1"
-                      max={fileData.total_pages}
-                      value={form.start}
-                      onChange={e => setForm(f => ({ ...f, start: Math.max(1, parseInt(e.target.value) || 1) }))}
-                      className="w-16 text-center text-xs font-bold bg-[#EAEFF5] dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg py-1 text-slate-800 dark:text-white outline-none focus:border-indigo-500"
-                    />
-                    <span className="text-xs text-slate-400">to</span>
-                    <input
-                      type="number"
-                      min={form.start}
-                      max={fileData.total_pages}
-                      value={form.end}
-                      onChange={e => setForm(f => ({ ...f, end: Math.min(fileData.total_pages, parseInt(e.target.value) || form.start) }))}
-                      className="w-16 text-center text-xs font-bold bg-[#EAEFF5] dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg py-1 text-slate-800 dark:text-white outline-none focus:border-indigo-500"
-                    />
-                    <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 ml-auto">
-                      {Math.max(1, form.end - form.start + 1)} pages selected
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              {/* 2. Sides & Copies */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Print Sides */}
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Print Sides</label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {['Single', 'Double'].map(side => (
-                      <button
-                        key={side}
-                        type="button"
-                        onClick={() => setForm(f => ({ ...f, sides: side }))}
-                        className={`py-2 px-2.5 rounded-xl text-xs font-bold border transition-all text-center cursor-pointer ${form.sides === side ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-600/25' : 'bg-[#F3F6FA] dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-indigo-300'}`}
-                      >
-                        {side === 'Single' ? '1-Sided' : '2-Sided (Duplex)'}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Copies Stepper */}
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Copies</label>
-                  <div className="flex items-center bg-[#F3F6FA] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-1">
-                    <button
-                      type="button"
-                      onClick={() => setForm(f => ({ ...f, copies: Math.max(1, f.copies - 1) }))}
-                      className="w-8 h-8 rounded-lg bg-[#E5EBF2] dark:bg-slate-700 hover:bg-[#DDE4EE] text-slate-700 dark:text-slate-200 flex items-center justify-center transition-colors cursor-pointer"
-                    >
-                      <Minus size={14} />
-                    </button>
-                    <span className="flex-1 text-center font-mono font-bold text-sm text-slate-800 dark:text-white">
-                      {form.copies}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setForm(f => ({ ...f, copies: Math.min(50, f.copies + 1) }))}
-                      className="w-8 h-8 rounded-lg bg-[#E5EBF2] dark:bg-slate-700 hover:bg-[#DDE4EE] text-slate-700 dark:text-slate-200 flex items-center justify-center transition-colors cursor-pointer"
-                    >
-                      <Plus size={14} />
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* 3. Binding Options */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Binding</label>
-                <div className="grid grid-cols-3 gap-2">
-                  {[
-                    { id: 'None', label: 'No Binding', extra: '₹0', color: 'text-slate-400' },
-                    { id: 'Stapled', label: 'Stapled', extra: '+₹5', color: 'text-teal-600 dark:text-teal-400 font-bold' },
-                    { id: 'Spiral', label: 'Spiral Bound', extra: '+₹30', color: 'text-amber-600 dark:text-amber-400 font-bold', disabled: !state.settings?.spiral_enabled }
-                  ].map(b => (
-                    <button
-                      key={b.id}
-                      type="button"
-                      disabled={b.disabled}
-                      onClick={() => setForm(f => ({ ...f, binding: b.id }))}
-                      className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${form.binding === b.id ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-600/25' : 'bg-[#F3F6FA] dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-indigo-300'}`}
-                    >
-                      <div className="text-xs font-bold truncate">{b.label}</div>
-                      <div className={`text-[10px] mt-0.5 ${form.binding === b.id ? 'text-white/80' : b.color}`}>
-                        {b.disabled ? 'Out of stock' : b.extra}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* 4. Payment Method */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Payment Option</label>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setForm(f => ({ ...f, payment: 'upi' }))}
-                    className={`p-3 rounded-xl border flex items-center gap-2.5 transition-all cursor-pointer ${form.payment === 'upi' ? 'bg-indigo-50 dark:bg-indigo-950/60 border-indigo-600 text-indigo-900 dark:text-indigo-200 ring-2 ring-indigo-500/20 shadow-xs' : 'bg-[#F3F6FA] dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-indigo-300'}`}
-                  >
-                    <div className="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300 flex items-center justify-center shrink-0">
-                      <CreditCard size={16} />
-                    </div>
-                    <div className="text-left leading-tight">
-                      <div className="text-xs font-bold">UPI QR Code</div>
-                      <div className="text-[10px] text-slate-400">Scan & print</div>
-                    </div>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setForm(f => ({ ...f, payment: 'cash' }))}
-                    className={`p-3 rounded-xl border flex items-center gap-2.5 transition-all cursor-pointer ${form.payment === 'cash' ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-500 text-emerald-800 dark:text-emerald-300 ring-2 ring-emerald-500/20 shadow-xs' : 'bg-[#F3F6FA] dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-indigo-300'}`}
-                  >
-                    <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-600 dark:bg-emerald-900/50 dark:text-emerald-300 flex items-center justify-center shrink-0">
-                      <IndianRupee size={16} />
-                    </div>
-                    <div className="text-left leading-tight">
-                      <div className="text-xs font-bold">Cash Counter</div>
-                      <div className="text-[10px] text-slate-400">Pay on pickup</div>
-                    </div>
-                  </button>
-                </div>
+                ))}
               </div>
             </div>
+          </div>
 
-            {/* Price & Submit CTA */}
-            <div className="bg-[#E9EEF5] dark:bg-[#0D1527] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-5 flex flex-wrap items-center justify-between gap-4">
-              <div>
-                <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                  Estimated Total {form.payment === 'cash' && '(Pay at counter)'}
-                </p>
-                <div className="flex items-baseline gap-1.5 mt-0.5">
-                  <span className="text-2xl sm:text-3xl font-extrabold text-indigo-600 dark:text-indigo-400 tracking-tight">₹{calcPrice()}</span>
-                  <span className="text-xs text-slate-500 font-medium">({pageCount * form.copies} pages total)</span>
+          {/* Payment Method Selection */}
+          <div className="pt-2">
+            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+              Payment Method
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setForm(f => ({ ...f, payment: 'upi' }))}
+                className={`p-2.5 rounded border text-left flex items-center gap-2.5 transition-colors cursor-pointer ${
+                  form.payment === 'upi'
+                    ? 'border-[#4169E1] bg-blue-50/40 dark:bg-blue-950/30'
+                    : 'border-slate-200 dark:border-[#1E2D4A] bg-white dark:bg-[#0B111E] hover:border-slate-300'
+                }`}
+              >
+                <CreditCard size={16} className={form.payment === 'upi' ? 'text-[#4169E1]' : 'text-slate-400'} />
+                <div>
+                  <div className="text-xs font-semibold text-slate-800 dark:text-slate-200">UPI QR Code</div>
+                  <div className="text-[10px] text-slate-400">Scan & print immediately</div>
                 </div>
-              </div>
+              </button>
 
               <button
-                type="submit"
-                disabled={!fileData || loading || !state.settings?.shop_open || !user}
-                className={`px-6 py-3 rounded-xl font-bold text-xs sm:text-sm transition-all shadow-md cursor-pointer ${!fileData || loading || !state.settings?.shop_open || !user ? 'bg-slate-300 dark:bg-slate-800 text-slate-500 dark:text-slate-500 cursor-not-allowed shadow-none' : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-600/30'}`}
+                type="button"
+                onClick={() => setForm(f => ({ ...f, payment: 'cash' }))}
+                className={`p-2.5 rounded border text-left flex items-center gap-2.5 transition-colors cursor-pointer ${
+                  form.payment === 'cash'
+                    ? 'border-emerald-600 bg-emerald-50/40 dark:bg-emerald-950/30'
+                    : 'border-slate-200 dark:border-[#1E2D4A] bg-white dark:bg-[#0B111E] hover:border-slate-300'
+                }`}
               >
-                {loading ? 'Processing...' : !user ? 'Sign in to Place Order' : !fileData ? 'Upload File to Continue' : !state.settings?.shop_open ? 'Shop Currently Closed' : 'Generate Queue Token'}
+                <IndianRupee size={16} className={form.payment === 'cash' ? 'text-emerald-600' : 'text-slate-400'} />
+                <div>
+                  <div className="text-xs font-semibold text-slate-800 dark:text-slate-200">Cash on Collection</div>
+                  <div className="text-[10px] text-slate-400">Pay at Station 1 counter</div>
+                </div>
               </button>
             </div>
-          </form>
-        </div>
+          </div>
+        </form>
       </div>
 
-      {/* ── Right Column: Live Pickup Tokens ── */}
-      <div className="lg:col-span-5 space-y-6">
-        <div className="bg-[#F3F6FA] dark:bg-[#111A2E] border border-slate-200/90 dark:border-slate-800 rounded-3xl p-6 shadow-sm">
-          <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800 mb-5">
-            <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              <Clock className="text-indigo-600 dark:text-indigo-400" size={19} />
+      {/* ── Right Column: Order Summary & Active Tickets ── */}
+      <div className="lg:col-span-5 space-y-4">
+
+        {/* Order Summary & Submit Card */}
+        <div className="bg-white dark:bg-[#111A2E] border border-slate-200 dark:border-[#1E2D4A] rounded-lg p-4">
+          <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-[#1E2D4A] mb-3">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              Order Summary
+            </h2>
+            <span className="text-[11px] font-mono text-slate-500">Station 1</span>
+          </div>
+
+          <div className="space-y-1.5 text-xs">
+            <div className="flex justify-between text-slate-600 dark:text-slate-400">
+              <span>Document Pages</span>
+              <span className="font-mono">{fileData ? fileData.total_pages : 0}</span>
+            </div>
+            <div className="flex justify-between text-slate-600 dark:text-slate-400">
+              <span>Selected Pages</span>
+              <span className="font-mono">{pageCount}</span>
+            </div>
+            <div className="flex justify-between text-slate-600 dark:text-slate-400">
+              <span>Copies × Base Rate</span>
+              <span className="font-mono">{form.copies} × ₹2.00</span>
+            </div>
+            {form.binding !== 'None' && (
+              <div className="flex justify-between text-slate-600 dark:text-slate-400">
+                <span>Binding ({form.binding})</span>
+                <span className="font-mono">+{form.binding === 'Spiral' ? '₹30' : '₹5'}</span>
+              </div>
+            )}
+            <div className="pt-2 mt-2 border-t border-slate-100 dark:border-[#1E2D4A] flex justify-between items-baseline">
+              <span className="font-semibold text-slate-900 dark:text-white">Total Amount</span>
+              <span className="text-xl font-bold font-mono text-[#182B49] dark:text-[#4169E1]">
+                ₹{calcPrice()}
+              </span>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleCreateOrder}
+            disabled={!fileData || loading || !isShopOpen || !user}
+            className={`w-full mt-4 py-2.5 rounded font-medium text-xs transition-colors cursor-pointer shadow-xs ${
+              !fileData || loading || !isShopOpen || !user
+                ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed shadow-none'
+                : 'bg-[#4169E1] hover:bg-[#3457C7] text-white font-semibold'
+            }`}
+          >
+            {loading
+              ? 'Generating Queue Ticket...'
+              : !user
+              ? 'Sign In to Place Order'
+              : !fileData
+              ? 'Upload Document to Continue'
+              : !isShopOpen
+              ? 'Counter Currently Closed'
+              : 'Generate Print Ticket'}
+          </button>
+        </div>
+
+        {/* Active Pickup Tickets Card */}
+        <div className="bg-white dark:bg-[#111A2E] border border-slate-200 dark:border-[#1E2D4A] rounded-lg p-4">
+          <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-[#1E2D4A] mb-3">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+              <Clock size={13} className="text-[#4169E1]" />
               <span>Active Pickup Tickets</span>
             </h2>
-            <span className="text-xs font-bold text-indigo-700 dark:text-indigo-300 font-mono bg-indigo-50 dark:bg-indigo-950 px-2.5 py-0.5 rounded-full border border-indigo-200 dark:border-indigo-800">
-              {myActiveOrders.length} Active
+            <span className="text-xs font-mono font-semibold px-1.5 py-0.2 rounded bg-slate-100 dark:bg-[#1E2D4A] text-slate-600 dark:text-slate-300">
+              {myActiveOrders.length}
             </span>
           </div>
 
           {!user ? (
-            <div className="py-12 px-4 text-center">
-              <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mx-auto mb-3">
-                <LogIn size={20} />
-              </div>
-              <p className="text-sm font-bold text-slate-700 dark:text-slate-300">Sign in to track orders</p>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-xs mx-auto">Your queue tokens, 4-digit pickup PINs, and job statuses will appear here.</p>
-            </div>
+            <p className="text-xs text-slate-400 text-center py-6">
+              Sign in to view your live tickets and pickup PINs.
+            </p>
           ) : myActiveOrders.length === 0 ? (
-            <div className="py-12 px-4 text-center">
-              <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mx-auto mb-3">
-                <Search size={20} />
-              </div>
-              <p className="text-sm font-bold text-slate-700 dark:text-slate-300">No active print orders</p>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-xs mx-auto">Uploaded documents and live queue tokens will be displayed here.</p>
-            </div>
+            <p className="text-xs text-slate-400 text-center py-6">
+              No active tickets. Upload a document to join the queue.
+            </p>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {myActiveOrders.map(order => (
-                <div key={order.id} className="bg-[#E9EEF5] dark:bg-[#0D1527] border border-slate-200 dark:border-slate-800/80 rounded-2xl p-4 sm:p-5 transition-all">
-                  <div className="flex items-start justify-between gap-3 mb-3">
+                <div
+                  key={order.id}
+                  className="bg-slate-50 dark:bg-[#0B111E] border border-slate-200 dark:border-[#1E2D4A] rounded p-3 text-xs"
+                >
+                  <div className="flex items-start justify-between gap-2 mb-2">
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="font-mono text-sm font-black text-indigo-600 dark:text-indigo-400 tracking-wider">
+                        <span className="font-mono font-bold text-sm text-[#182B49] dark:text-[#4169E1]">
                           {order.token || 'PQ-PENDING'}
                         </span>
                         <StatusBadge status={order.status} />
                       </div>
-                      <p className="text-xs font-bold text-slate-800 dark:text-slate-200 mt-1 max-w-[200px] truncate" title={order.original_filename}>
+                      <p className="text-slate-600 dark:text-slate-300 mt-1 truncate max-w-[200px]" title={order.original_filename}>
                         {order.original_filename}
                       </p>
                     </div>
-
                     <div className="text-right">
-                      <span className="text-xs font-extrabold text-slate-900 dark:text-white">
-                        Station {order.printing_station}
-                      </span>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">
-                        {order.sliced_pages} pgs × {order.copies}
-                      </p>
+                      <span className="font-semibold text-slate-800 dark:text-slate-200">₹{order.amount}</span>
+                      <p className="text-[10px] font-mono text-slate-400">{order.sliced_pages}p × {order.copies}c</p>
                     </div>
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-600 dark:text-slate-300 mb-3">
-                    <span className="px-2 py-0.5 rounded-lg bg-[#F3F6FA] dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                      {order.sides}
-                    </span>
-                    {order.binding !== 'None' && (
-                      <span className="px-2 py-0.5 rounded-lg bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
-                        {order.binding}
-                      </span>
-                    )}
-                    <span className="px-2 py-0.5 rounded-lg bg-[#F3F6FA] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 capitalize">
-                      {order.payment_method} (₹{order.amount})
-                    </span>
-                  </div>
-
-                  {/* Pickup PIN Block */}
+                  {/* 4-Digit Pickup PIN Banner */}
                   {order.status !== 'Awaiting Payment' && order.status !== 'Collected' && order.status !== 'Refunded' && (
-                    <div className="mt-1 bg-[#F3F6FA] dark:bg-[#111A2E] border border-slate-200 dark:border-slate-800 rounded-xl p-3 flex items-center justify-between shadow-xs">
+                    <div className="bg-white dark:bg-[#111A2E] border border-slate-200 dark:border-[#1E2D4A] rounded p-2 flex items-center justify-between mt-2">
                       <div>
-                        <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Pickup PIN</span>
-                        <p className="text-[11px] text-slate-500">Show to shopkeeper</p>
+                        <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400">
+                          Pickup PIN
+                        </span>
+                        <p className="text-[11px] text-slate-500">Provide to counter clerk</p>
                       </div>
-                      <div className="font-mono text-2xl font-black text-indigo-600 dark:text-indigo-400 tracking-[0.25em] pl-2 bg-indigo-50 dark:bg-indigo-950/60 px-3 py-1 rounded-lg border border-indigo-100 dark:border-indigo-900/60">
-                        {order.otp}
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-mono text-base font-bold text-[#182B49] dark:text-[#4169E1] tracking-wider px-2 py-0.5 rounded bg-slate-100 dark:bg-[#0B111E] border border-slate-200 dark:border-[#1E2D4A]">
+                          {order.otp}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => copyPin(order.otp, order.id)}
+                          className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                          title="Copy PIN"
+                        >
+                          {copiedPinId === order.id ? <CheckIcon size={14} className="text-emerald-500" /> : <Copy size={14} />}
+                        </button>
                       </div>
                     </div>
                   )}
@@ -818,32 +891,33 @@ function StudentPortal({ state, myOrderIds, setMyOrderIds, fetchState, user, onL
 
       {/* ── Checkout / QR / Confirmation Modal ── */}
       {checkoutData && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#F3F6FA] dark:bg-[#111A2E] border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 max-w-sm w-full text-center shadow-2xl">
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-              {checkoutData.token ? 'Order Placed!' : 'Scan UPI QR Code'}
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#111A2E] border border-slate-200 dark:border-[#1E2D4A] rounded-lg p-5 max-w-sm w-full text-center shadow-lg">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+              {checkoutData.token ? 'Ticket Generated' : 'UPI Payment Required'}
             </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 mb-5">
+            <p className="text-xs text-slate-500 mt-1 mb-4">
               Order #{checkoutData.order_id} • Amount: ₹{checkoutData.amount}
             </p>
 
             {checkoutData.token ? (
-              <div className="space-y-4">
-                <div className="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-2xl p-4">
-                  <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto mb-2">
-                    <CheckCheck size={22} />
+              <div className="space-y-3 text-left">
+                <div className="bg-emerald-50/70 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded p-3 text-xs">
+                  <div className="flex items-center gap-1.5 text-emerald-800 dark:text-emerald-300 font-semibold mb-1">
+                    <CheckCircle size={14} />
+                    <span>Cash on Collection</span>
                   </div>
-                  <p className="text-xs font-bold text-emerald-800 dark:text-emerald-300">Cash on Collection</p>
-                  <p className="text-xs text-emerald-700/80 dark:text-emerald-400/80 mt-1">
-                    Pay ₹{checkoutData.amount} at the shop counter when picking up your print.
+                  <p className="text-emerald-700/90 dark:text-emerald-400/90 text-[11px]">
+                    Pay ₹{checkoutData.amount} at Station 1 counter upon collecting your document.
                   </p>
-                  <div className="mt-3 pt-3 border-t border-emerald-200 dark:border-emerald-800/40 flex justify-between text-xs font-mono">
-                    <span className="text-slate-600 dark:text-slate-400">Token: <strong className="text-slate-900 dark:text-white">{checkoutData.token}</strong></span>
-                    <span className="text-slate-600 dark:text-slate-400">PIN: <strong className="text-slate-900 dark:text-white">{checkoutData.otp}</strong></span>
+                  <div className="mt-2 pt-2 border-t border-emerald-200/60 dark:border-emerald-800/60 flex justify-between text-xs font-mono">
+                    <span>Token: <strong>{checkoutData.token}</strong></span>
+                    <span>PIN: <strong>{checkoutData.otp}</strong></span>
                   </div>
                 </div>
 
                 <button
+                  type="button"
                   onClick={() => {
                     const updated = [checkoutData.order_id, ...myOrderIds];
                     setMyOrderIds(updated);
@@ -852,31 +926,33 @@ function StudentPortal({ state, myOrderIds, setMyOrderIds, fetchState, user, onL
                     setFileData(null);
                     fetchState();
                   }}
-                  className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl text-xs sm:text-sm transition-all shadow-md shadow-indigo-600/20 cursor-pointer"
+                  className="w-full bg-[#4169E1] hover:bg-[#3457C7] text-white font-medium py-2 rounded text-xs transition-colors cursor-pointer"
                 >
-                  View My Tickets
+                  View Active Ticket
                 </button>
               </div>
             ) : (
-              <div className="space-y-4">
-                <div className="bg-white p-4 rounded-2xl border border-slate-200 inline-block shadow-xs">
-                  <QrCode size={180} className="text-slate-900" />
+              <div className="space-y-3">
+                <div className="bg-white p-2.5 rounded border border-slate-200 inline-block shadow-xs">
+                  <QrCode size={160} className="text-slate-900 mx-auto" />
                 </div>
-                <p className="text-xs text-slate-500 font-medium">Scan using any UPI App (GPay, PhonePe, Paytm)</p>
+                <p className="text-[11px] text-slate-500">Scan via GPay, PhonePe, Paytm, or BHIM</p>
 
                 <button
+                  type="button"
                   onClick={handleConfirmPayment}
                   disabled={loading}
-                  className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl text-xs sm:text-sm transition-all shadow-md shadow-indigo-600/20 cursor-pointer disabled:opacity-50"
+                  className="w-full bg-[#4169E1] hover:bg-[#3457C7] text-white font-medium py-2 rounded text-xs transition-colors cursor-pointer disabled:opacity-50"
                 >
-                  {loading ? 'Verifying payment...' : 'I Have Paid ₹' + checkoutData.amount}
+                  {loading ? 'Verifying payment...' : `I Have Paid ₹${checkoutData.amount}`}
                 </button>
               </div>
             )}
 
             <button
+              type="button"
               onClick={() => setCheckoutData(null)}
-              className="mt-3 text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 font-medium py-1 transition-colors cursor-pointer"
+              className="mt-3 text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 cursor-pointer"
             >
               Cancel Order
             </button>
@@ -888,7 +964,7 @@ function StudentPortal({ state, myOrderIds, setMyOrderIds, fetchState, user, onL
 }
 
 // ---------------------------------------------------------------------------
-// Shopkeeper Terminal
+// Shopkeeper Terminal (Operational Workstation)
 // ---------------------------------------------------------------------------
 function ShopkeeperDashboard({ state, fetchState, user }) {
   const [verifyingOrder, setVerifyingOrder] = useState(null);
@@ -920,21 +996,17 @@ function ShopkeeperDashboard({ state, fetchState, user }) {
     }
   };
 
-  // ── Print: open the sliced PDF in a new tab and trigger browser print ──
   const handlePrintOrder = async (order) => {
     setPrintingOrderId(order.id);
     try {
-      // First update status to Printing
       await axios.post(`${API_BASE}/orders/${order.id}/status`, { status: 'Printing' }, { withCredentials: true });
       fetchState();
 
-      // Fetch the sliced PDF as a blob
       const res = await axios.get(`${API_BASE}/orders/${order.id}/print-file`, {
         withCredentials: true,
         responseType: 'blob'
       });
 
-      // Open the PDF in a new tab and trigger window.print()
       const blob = new Blob([res.data], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
       const printWindow = window.open(url, '_blank');
@@ -945,21 +1017,28 @@ function ShopkeeperDashboard({ state, fetchState, user }) {
           }, 400);
         });
       } else {
-        // If popup blocked, download it
         const a = document.createElement('a');
         a.href = url;
         a.download = `print_${order.token || order.id}.pdf`;
         a.click();
-        alert('Popup was blocked. The PDF has been downloaded — open and print it manually.');
+        alert('Popup was blocked. Sliced PDF has been downloaded for printing.');
       }
     } catch (err) {
-      alert(err.response?.data?.error || 'Failed to fetch print file. The file may have been purged.');
+      alert(err.response?.data?.error || 'Failed to fetch print file.');
     }
     setPrintingOrderId(null);
   };
 
-  // ── Filtering & Search ──
-  const STATUS_OPTIONS = ['All', 'In Queue', 'Printing', 'Ready for Pickup', 'Awaiting Payment', 'Collected', 'Refunded'];
+  // Status Filter Counts
+  const countByStatus = (s) => state.orders.filter(o => o.status === s).length;
+
+  const STATUS_TABS = [
+    { label: 'All Jobs', key: 'All', count: state.orders.length },
+    { label: 'In Queue', key: 'In Queue', count: countByStatus('In Queue') },
+    { label: 'Printing', key: 'Printing', count: countByStatus('Printing') },
+    { label: 'Ready for Pickup', key: 'Ready for Pickup', count: countByStatus('Ready for Pickup') },
+    { label: 'Collected', key: 'Collected', count: countByStatus('Collected') },
+  ];
 
   const filteredOrders = state.orders.filter(order => {
     if (statusFilter !== 'All' && order.status !== statusFilter) return false;
@@ -974,21 +1053,18 @@ function ShopkeeperDashboard({ state, fetchState, user }) {
     return true;
   });
 
-  // ── Select All / Toggle ──
   const allFilteredIds = new Set(filteredOrders.map(o => o.id));
   const allSelected = filteredOrders.length > 0 && filteredOrders.every(o => selectedIds.has(o.id));
   const someSelected = filteredOrders.some(o => selectedIds.has(o.id));
 
   const toggleSelectAll = () => {
     if (allSelected) {
-      // Deselect all filtered
       setSelectedIds(prev => {
         const next = new Set(prev);
         allFilteredIds.forEach(id => next.delete(id));
         return next;
       });
     } else {
-      // Select all filtered
       setSelectedIds(prev => {
         const next = new Set(prev);
         allFilteredIds.forEach(id => next.add(id));
@@ -1008,7 +1084,6 @@ function ShopkeeperDashboard({ state, fetchState, user }) {
 
   const clearSelection = () => setSelectedIds(new Set());
 
-  // ── Bulk Actions ──
   const selectedOrders = filteredOrders.filter(o => selectedIds.has(o.id));
   const selectedInQueue = selectedOrders.filter(o => o.status === 'In Queue');
   const selectedPrinting = selectedOrders.filter(o => o.status === 'Printing');
@@ -1032,289 +1107,286 @@ function ShopkeeperDashboard({ state, fetchState, user }) {
     setBulkLoading(false);
   };
 
-  // Count summaries
-  const countByStatus = (s) => state.orders.filter(o => o.status === s).length;
-
   return (
-    <div className="space-y-6">
-      {/* Controls Bar */}
-      <div className="bg-[#F3F6FA] dark:bg-[#111A2E] border border-slate-200/90 dark:border-slate-800 rounded-3xl p-5 shadow-sm flex flex-wrap items-center justify-between gap-4">
+    <div className="space-y-4">
+
+      {/* ── Operational Command Bar (Station Metadata & Hardware Toggles) ── */}
+      <div className="bg-white dark:bg-[#111A2E] border border-slate-200 dark:border-[#1E2D4A] rounded-lg p-3 sm:px-4 sm:py-3 flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-xs">
         <div>
-          <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <Settings size={18} className="text-indigo-600 dark:text-indigo-400" />
-            <span>Station Controls</span>
-          </h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Manage live printer and paper supplies</p>
+          <div className="flex items-center gap-2">
+            <h1 className="text-sm font-bold text-slate-900 dark:text-white">Station 1 Workstation</h1>
+            <span className="text-slate-300 dark:text-slate-700">•</span>
+            <span className="text-xs text-slate-500 font-mono">Central Library Counter</span>
+          </div>
+          <p className="text-[11px] text-slate-400 mt-0.5">
+            Queue: <strong className="text-slate-700 dark:text-slate-300 font-mono">{state.stats?.active_orders || 0} active</strong> • Est wait: <strong className="text-slate-700 dark:text-slate-300 font-mono">~{state.stats?.est_wait_mins || 0}m</strong>
+          </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3 sm:gap-6">
+        {/* Clear, properly aligned station status toggles */}
+        <div className="flex flex-wrap items-center gap-4 sm:gap-6 pt-2 md:pt-0 border-t md:border-t-0 border-slate-100 dark:border-[#1E2D4A]">
           <ColourToggle
-            label="Shop Accepting Orders"
+            label="Accepting Orders"
             active={state.settings?.shop_open}
             onChange={v => toggleSetting('shop_open', v)}
-            color="emerald"
           />
           <ColourToggle
-            label="Printer Ready"
+            label="Printer Online"
             active={state.settings?.bw_enabled}
             onChange={v => toggleSetting('bw_enabled', v)}
-            color="indigo"
           />
           <ColourToggle
             label="Spiral Stock"
             active={state.settings?.spiral_enabled}
             onChange={v => toggleSetting('spiral_enabled', v)}
-            color="amber"
           />
         </div>
       </div>
 
-      {/* Quick Stats Row */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        {[
-          { label: 'In Queue', count: countByStatus('In Queue'), color: 'indigo' },
-          { label: 'Printing', count: countByStatus('Printing'), color: 'cyan' },
-          { label: 'Ready for Pickup', count: countByStatus('Ready for Pickup'), color: 'emerald' },
-          { label: 'Collected', count: countByStatus('Collected'), color: 'slate' },
-        ].map(s => (
-          <button
-            key={s.label}
-            onClick={() => setStatusFilter(statusFilter === s.label ? 'All' : s.label)}
-            className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${statusFilter === s.label
-              ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-600/20'
-              : 'bg-[#F3F6FA] dark:bg-[#111A2E] border-slate-200 dark:border-slate-800 hover:border-indigo-300'
-            }`}
-          >
-            <p className={`text-2xl font-extrabold ${statusFilter === s.label ? 'text-white' : 'text-slate-900 dark:text-white'}`}>{s.count}</p>
-            <p className={`text-[11px] font-bold mt-0.5 ${statusFilter === s.label ? 'text-white/80' : 'text-slate-500 dark:text-slate-400'}`}>{s.label}</p>
-          </button>
-        ))}
-      </div>
+      {/* ── Queue Management Workstation (Filters & Action Strip) ── */}
+      <div className="bg-white dark:bg-[#111A2E] border border-slate-200 dark:border-[#1E2D4A] rounded-lg shadow-xs overflow-hidden">
 
-      {/* Orders Table */}
-      <div className="bg-[#F3F6FA] dark:bg-[#111A2E] border border-slate-200/90 dark:border-slate-800 rounded-3xl shadow-sm overflow-hidden">
-        {/* Table Header: Search + Filter + Bulk Actions */}
-        <div className="px-4 sm:px-6 py-4 border-b border-slate-200 dark:border-slate-800 space-y-3">
-          {/* Row 1: Title + Count */}
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-slate-900 dark:text-white">Active Queue & Print History</h3>
-            <span className="text-xs font-mono font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950 px-2 py-0.5 rounded-full border border-indigo-200 dark:border-indigo-800">
-              {filteredOrders.length} / {state.orders.length} Jobs
-            </span>
+        {/* Integrated Filter Tabs & Search Strip */}
+        <div className="border-b border-slate-200 dark:border-[#1E2D4A]">
+          {/* Status Tabs */}
+          <div className="flex overflow-x-auto text-xs font-medium px-2 pt-1 border-b border-slate-100 dark:border-[#1E2D4A]/60">
+            {STATUS_TABS.map(tab => {
+              const isActive = statusFilter === tab.key;
+              return (
+                <button
+                  key={tab.key}
+                  type="button"
+                  onClick={() => setStatusFilter(tab.key)}
+                  className={`flex items-center gap-1.5 px-3 py-2 border-b-2 -mb-px transition-colors cursor-pointer shrink-0 ${
+                    isActive
+                      ? 'border-[#4169E1] text-[#4169E1] font-semibold'
+                      : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                  }`}
+                >
+                  <span>{tab.label}</span>
+                  <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded ${
+                    isActive
+                      ? 'bg-blue-100 dark:bg-blue-950 text-[#4169E1]'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
+                  }`}>
+                    {tab.count}
+                  </span>
+                </button>
+              );
+            })}
           </div>
 
-          {/* Row 2: Search + Status Filter */}
-          <div className="flex flex-wrap items-center gap-2.5">
-            {/* Search */}
-            <div className="flex-1 min-w-[180px] relative">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          {/* Search & Bulk Operations Strip */}
+          <div className="p-2.5 sm:px-3.5 flex flex-wrap items-center justify-between gap-2.5 bg-slate-50/60 dark:bg-[#0E1728]/60">
+            {/* Search Input */}
+            <div className="flex-1 min-w-[220px] max-w-md relative">
+              <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
-                placeholder="Search by token, student, USN, or file..."
+                placeholder="Search ticket, student, USN, filename..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="w-full bg-[#EAEFF5] dark:bg-[#0D1527] border border-slate-200 dark:border-slate-700 rounded-xl pl-9 pr-3 py-2 text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500 placeholder:text-slate-400"
+                className="w-full h-8 bg-white dark:bg-[#0B111E] border border-slate-200 dark:border-[#1E2D4A] rounded pl-8 pr-7 text-xs text-slate-800 dark:text-slate-200 outline-none focus:border-[#4169E1]"
               />
               {searchQuery && (
                 <button
+                  type="button"
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
                 >
-                  <XCircle size={14} />
+                  <XCircle size={13} />
                 </button>
               )}
             </div>
 
-            {/* Status Filter Dropdown */}
-            <div className="relative flex items-center gap-1.5">
-              <Filter size={14} className="text-slate-500 dark:text-slate-400" />
-              <select
-                value={statusFilter}
-                onChange={e => setStatusFilter(e.target.value)}
-                className="bg-[#EAEFF5] dark:bg-[#0D1527] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 outline-none focus:border-indigo-500 cursor-pointer appearance-none pr-7"
-              >
-                {STATUS_OPTIONS.map(s => (
-                  <option key={s} value={s}>{s === 'All' ? 'All Statuses' : s}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Clear filters */}
-            {(statusFilter !== 'All' || searchQuery) && (
+            {/* Quick Action / Refresh Indicator */}
+            <div className="flex items-center gap-2 text-xs">
+              <span className="text-[11px] font-mono text-slate-400">
+                {filteredOrders.length} of {state.orders.length} jobs
+              </span>
               <button
-                onClick={() => { setStatusFilter('All'); setSearchQuery(''); }}
-                className="text-xs text-slate-500 hover:text-indigo-600 font-bold cursor-pointer flex items-center gap-1"
+                type="button"
+                onClick={fetchState}
+                title="Refresh Queue"
+                className="h-8 px-2.5 rounded border border-slate-200 dark:border-[#1E2D4A] bg-white dark:bg-[#0B111E] hover:bg-slate-50 dark:hover:bg-[#152238] text-slate-600 dark:text-slate-300 flex items-center gap-1 cursor-pointer transition-colors"
               >
-                <XCircle size={13} /> Clear
+                <RefreshCw size={12} />
+                <span className="text-[11px]">Refresh</span>
               </button>
-            )}
+            </div>
           </div>
 
-          {/* Row 3: Bulk Action Bar (only when items are selected) */}
+          {/* Bulk Operations Bar (Conditional) */}
           {someSelected && (
-            <div className="flex flex-wrap items-center gap-2.5 bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 rounded-xl px-4 py-2.5">
-              <span className="text-xs font-bold text-indigo-700 dark:text-indigo-300">
+            <div className="bg-blue-50/80 dark:bg-blue-950/40 border-t border-blue-200 dark:border-blue-900/60 px-3 py-1.5 flex items-center gap-3 text-xs">
+              <span className="font-semibold text-slate-900 dark:text-white">
                 {selectedIds.size} selected
               </span>
-              <span className="text-slate-300 dark:text-slate-600">|</span>
 
               {selectedInQueue.length > 0 && (
                 <button
+                  type="button"
                   disabled={bulkLoading}
                   onClick={() => handleBulkAction('Printing')}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-xs cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
+                  className="h-7 px-2.5 bg-[#4169E1] hover:bg-[#3457C7] text-white rounded text-xs font-medium cursor-pointer flex items-center gap-1"
                 >
-                  <Printer size={13} /> Print {selectedInQueue.length} Jobs
+                  <Printer size={12} /> Print {selectedInQueue.length}
                 </button>
               )}
+
               {selectedPrinting.length > 0 && (
                 <button
+                  type="button"
                   disabled={bulkLoading}
                   onClick={() => handleBulkAction('Ready for Pickup')}
-                  className="bg-teal-600 hover:bg-teal-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-xs cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
+                  className="h-7 px-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-medium cursor-pointer flex items-center gap-1"
                 >
-                  <CheckCheck size={13} /> Mark {selectedPrinting.length} Ready
+                  <CheckCheck size={12} /> Mark {selectedPrinting.length} Ready
                 </button>
               )}
 
               <button
+                type="button"
                 onClick={clearSelection}
-                className="text-xs text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 font-bold cursor-pointer ml-auto flex items-center gap-1"
+                className="text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 text-xs ml-auto cursor-pointer"
               >
-                <X size={13} /> Deselect
+                Clear selection
               </button>
             </div>
           )}
         </div>
 
+        {/* ── High-Density Data Table ── */}
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs whitespace-nowrap">
-            <thead className="bg-[#E9EEF5] dark:bg-[#0D1527] text-slate-500 dark:text-slate-400 font-bold border-b border-slate-200 dark:border-slate-800">
+            <thead className="bg-slate-50 dark:bg-[#0E1728] text-slate-500 dark:text-slate-400 font-semibold border-b border-slate-200 dark:border-[#1E2D4A]">
               <tr>
-                <th className="py-3.5 px-4 w-10">
+                <th className="py-2.5 px-3 w-8">
                   <button
+                    type="button"
                     onClick={toggleSelectAll}
-                    className="flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 cursor-pointer"
-                    title={allSelected ? 'Deselect all' : 'Select all'}
+                    className="flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
                   >
-                    {allSelected ? <CheckSquare size={16} className="text-indigo-600 dark:text-indigo-400" /> : someSelected ? <Minus size={16} className="text-indigo-400" /> : <Square size={16} />}
+                    {allSelected ? <CheckSquare size={14} className="text-[#4169E1]" /> : someSelected ? <Minus size={14} className="text-[#4169E1]" /> : <Square size={14} />}
                   </button>
                 </th>
-                <th className="py-3.5 px-4">TOKEN & STUDENT</th>
-                <th className="py-3.5 px-4">FILE</th>
-                <th className="py-3.5 px-4">OPTIONS</th>
-                <th className="py-3.5 px-4">AMOUNT</th>
-                <th className="py-3.5 px-4">STATUS</th>
-                <th className="py-3.5 px-4 text-right">ACTION</th>
+                <th className="py-2.5 px-3">TICKET</th>
+                <th className="py-2.5 px-3">STUDENT & USN</th>
+                <th className="py-2.5 px-3">DOCUMENT</th>
+                <th className="py-2.5 px-3">PAGES & SPECS</th>
+                <th className="py-2.5 px-3">FINISHING</th>
+                <th className="py-2.5 px-3">PAYMENT</th>
+                <th className="py-2.5 px-3">STATUS</th>
+                <th className="py-2.5 px-3 text-right">ACTION</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-200/80 dark:divide-slate-800/80">
+            <tbody className="divide-y divide-slate-100 dark:divide-[#1E2D4A]/60">
               {filteredOrders.map(order => (
                 <tr
                   key={order.id}
-                  className={`transition-colors ${selectedIds.has(order.id) ? 'bg-indigo-50/60 dark:bg-indigo-950/30' : 'hover:bg-[#EAEFF6] dark:hover:bg-slate-800/40'}`}
+                  className={`transition-colors ${
+                    selectedIds.has(order.id)
+                      ? 'bg-blue-50/50 dark:bg-blue-950/20'
+                      : 'hover:bg-slate-50/70 dark:hover:bg-[#152238]/40'
+                  }`}
                 >
-                  <td className="py-3.5 px-4">
+                  <td className="py-2 px-3">
                     <button
+                      type="button"
                       onClick={() => toggleSelect(order.id)}
-                      className="flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 cursor-pointer"
+                      className="flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
                     >
                       {selectedIds.has(order.id)
-                        ? <CheckSquare size={16} className="text-indigo-600 dark:text-indigo-400" />
-                        : <Square size={16} />
+                        ? <CheckSquare size={14} className="text-[#4169E1]" />
+                        : <Square size={14} />
                       }
                     </button>
                   </td>
-                  <td className="py-3.5 px-4">
-                    <p className="font-mono font-bold text-indigo-600 dark:text-indigo-400 text-sm">{order.token || '---'}</p>
-                    <p className="font-bold text-slate-800 dark:text-slate-200 mt-0.5">{order.student_name}</p>
-                    <p className="font-mono text-[11px] text-slate-400">{order.usn}</p>
+                  <td className="py-2 px-3">
+                    <span className="font-mono font-bold text-xs text-[#182B49] dark:text-[#4169E1]">
+                      {order.token || 'PQ-PENDING'}
+                    </span>
+                    <span className="text-[10px] font-mono text-slate-400 ml-1.5">St.{order.printing_station}</span>
                   </td>
-                  <td className="py-3.5 px-4">
-                    <p className="font-medium text-slate-800 dark:text-slate-200 truncate max-w-[180px]" title={order.original_filename}>
+                  <td className="py-2 px-3">
+                    <p className="font-medium text-slate-900 dark:text-white leading-tight">
+                      {order.student_name}
+                    </p>
+                    <p className="font-mono text-[10px] text-slate-400">{order.usn}</p>
+                  </td>
+                  <td className="py-2 px-3">
+                    <p className="font-medium text-slate-800 dark:text-slate-200 truncate max-w-[190px]" title={order.original_filename}>
                       {order.original_filename}
                     </p>
-                    <p className="text-slate-400 text-[11px] mt-0.5 font-mono">
-                      {order.sliced_pages} pgs × {order.copies}
-                      {order.sides === 'Double' && ' • Duplex'}
-                    </p>
                   </td>
-                  <td className="py-3.5 px-4">
-                    <div className="flex items-center gap-1.5">
-                      <span className="px-2 py-0.5 rounded-lg bg-[#F3F6FA] dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-medium border border-slate-200 dark:border-slate-700">
-                        {order.sides}
+                  <td className="py-2 px-3 font-mono text-[11px] text-slate-600 dark:text-slate-300">
+                    <span>{order.sliced_pages}p × {order.copies}c</span>
+                    <span className="text-slate-400 ml-1">({order.sides === 'Double' ? 'Duplex' : '1-Side'})</span>
+                  </td>
+                  <td className="py-2 px-3">
+                    {order.binding !== 'None' ? (
+                      <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
+                        {order.binding}
                       </span>
-                      {order.binding !== 'None' && (
-                        <span className="px-2 py-0.5 rounded-lg bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800 font-bold">
-                          {order.binding}
-                        </span>
-                      )}
-                    </div>
+                    ) : (
+                      <span className="text-slate-400 text-[11px]">—</span>
+                    )}
                   </td>
-                  <td className="py-3.5 px-4">
-                    <p className="font-bold text-slate-800 dark:text-slate-200">₹{order.amount}</p>
-                    <p className="capitalize text-[11px] font-medium text-slate-400 mt-0.5">{order.payment_method}</p>
+                  <td className="py-2 px-3">
+                    <span className="font-bold font-mono text-slate-900 dark:text-white">₹{order.amount}</span>
+                    <span className="text-[10px] text-slate-400 ml-1 capitalize">({order.payment_method})</span>
                   </td>
-                  <td className="py-3.5 px-4">
+                  <td className="py-2 px-3">
                     <StatusBadge status={order.status} />
                   </td>
-                  <td className="py-3.5 px-4 text-right">
-                    <div className="flex items-center justify-end gap-2">
+                  <td className="py-2 px-3 text-right">
+                    <div className="flex items-center justify-end gap-1.5">
                       {order.status === 'In Queue' && (
                         <button
+                          type="button"
                           disabled={printingOrderId === order.id}
                           onClick={() => handlePrintOrder(order)}
-                          className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow-xs cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
+                          className="h-7 px-2.5 bg-[#4169E1] hover:bg-[#3457C7] text-white rounded text-xs font-medium cursor-pointer disabled:opacity-50 flex items-center gap-1 shadow-xs"
                         >
                           {printingOrderId === order.id ? (
-                            <><RefreshCw size={12} className="animate-spin" /> Opening...</>
+                            <><RefreshCw size={11} className="animate-spin" /> Slicing...</>
                           ) : (
-                            <><Printer size={12} /> Print</>
+                            <><Printer size={11} /> Print PDF</>
                           )}
                         </button>
                       )}
                       {order.status === 'Printing' && (
                         <button
+                          type="button"
                           onClick={() => updateStatus(order.id, 'Ready for Pickup')}
-                          className="bg-teal-600 hover:bg-teal-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow-xs cursor-pointer"
+                          className="h-7 px-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-medium cursor-pointer shadow-xs"
                         >
                           Mark Ready
                         </button>
                       )}
                       {order.status === 'Ready for Pickup' && (
                         <button
+                          type="button"
                           onClick={() => setVerifyingOrder(order)}
-                          className="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow-xs cursor-pointer"
+                          className="h-7 px-2.5 bg-[#182B49] dark:bg-[#4169E1] hover:opacity-90 text-white rounded text-xs font-medium cursor-pointer flex items-center gap-1 shadow-xs"
                         >
-                          Handover (PIN)
+                          <Key size={11} /> Handover (PIN)
                         </button>
                       )}
                       {order.status === 'Collected' && (
-                        <span className="text-slate-400 text-xs font-medium flex items-center justify-end gap-1">
-                          <CheckCheck size={14} className="text-emerald-500" /> Done
+                        <span className="text-slate-400 text-xs flex items-center justify-end gap-1">
+                          <CheckCheck size={13} className="text-emerald-500" /> Done
                         </span>
                       )}
                     </div>
                   </td>
                 </tr>
               ))}
+
               {filteredOrders.length === 0 && (
                 <tr>
-                  <td colSpan="7" className="py-10 text-center">
-                    <div className="flex flex-col items-center gap-2">
-                      <Search size={22} className="text-slate-300 dark:text-slate-600" />
-                      <p className="text-sm font-bold text-slate-400 dark:text-slate-500">
-                        {state.orders.length === 0 ? 'No print jobs found.' : 'No orders match your filters.'}
-                      </p>
-                      {(statusFilter !== 'All' || searchQuery) && (
-                        <button
-                          onClick={() => { setStatusFilter('All'); setSearchQuery(''); }}
-                          className="text-xs text-indigo-600 hover:text-indigo-700 font-bold cursor-pointer mt-1"
-                        >
-                          Clear all filters
-                        </button>
-                      )}
-                    </div>
+                  <td colSpan="9" className="py-12 text-center text-slate-400 text-xs">
+                    No orders match your filter criteria.
                   </td>
                 </tr>
               )}
@@ -1323,16 +1395,13 @@ function ShopkeeperDashboard({ state, fetchState, user }) {
         </div>
       </div>
 
-      {/* OTP Handover Verification Modal */}
+      {/* ── Handover OTP Verification Dialog ── */}
       {verifyingOrder && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#F3F6FA] dark:bg-[#111A2E] border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 max-w-sm w-full text-center shadow-2xl">
-            <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mx-auto mb-3">
-              <Key size={24} />
-            </div>
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Verify Pickup PIN</h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 mb-5">
-              Ask student for the 4-digit PIN for ticket <strong className="text-indigo-600 dark:text-indigo-400 font-mono">{verifyingOrder.token}</strong>
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#111A2E] border border-slate-200 dark:border-[#1E2D4A] rounded-lg p-5 max-w-xs w-full text-center shadow-lg">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white">Verify Student Pickup PIN</h3>
+            <p className="text-xs text-slate-500 mt-0.5 mb-4">
+              Ticket: <strong className="font-mono text-[#182B49] dark:text-[#4169E1]">{verifyingOrder.token}</strong> ({verifyingOrder.student_name})
             </p>
 
             <input
@@ -1341,20 +1410,22 @@ function ShopkeeperDashboard({ state, fetchState, user }) {
               maxLength="4"
               value={pinInput}
               onChange={e => setPinInput(e.target.value)}
-              className="w-36 bg-[#EAEFF5] dark:bg-[#0D1527] border-2 border-indigo-500 rounded-2xl px-4 py-3 text-slate-900 dark:text-white text-center text-3xl tracking-[0.25em] font-mono mx-auto mb-6 outline-none shadow-inner"
+              className="w-32 h-10 bg-slate-50 dark:bg-[#0B111E] border border-slate-300 dark:border-[#1E2D4A] rounded px-3 text-center text-xl tracking-widest font-mono mx-auto mb-4 outline-none focus:border-[#4169E1]"
               placeholder="••••"
             />
 
-            <div className="flex gap-2.5">
+            <div className="flex gap-2">
               <button
+                type="button"
                 onClick={() => setVerifyingOrder(null)}
-                className="flex-1 py-2.5 text-slate-600 dark:text-slate-300 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 rounded-xl font-bold text-xs cursor-pointer"
+                className="flex-1 py-1.5 text-xs text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 rounded cursor-pointer"
               >
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={handleVerifyOTP}
-                className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-xl text-xs shadow-md cursor-pointer"
+                className="flex-1 py-1.5 text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded cursor-pointer shadow-xs"
               >
                 Verify & Clear
               </button>
@@ -1367,7 +1438,7 @@ function ShopkeeperDashboard({ state, fetchState, user }) {
 }
 
 // ---------------------------------------------------------------------------
-// Admin Panel
+// Admin Panel (User Roles & Access Control)
 // ---------------------------------------------------------------------------
 function AdminPanel() {
   const [users, setUsers] = useState([]);
@@ -1400,71 +1471,81 @@ function AdminPanel() {
 
   if (loading) {
     return (
-      <div className="flex justify-center py-20">
-        <div className="w-8 h-8 border-3 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+      <div className="flex justify-center py-16">
+        <RefreshCw size={18} className="animate-spin text-[#4169E1]" />
       </div>
     );
   }
 
   return (
-    <div className="bg-[#F3F6FA] dark:bg-[#111A2E] border border-slate-200/90 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-4">
-      <div>
-        <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-          <Shield size={20} className="text-amber-500" />
-          <span>User & Whitelist Management</span>
-        </h2>
-        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-          Promote students to shopkeeper or revoke access.
-        </p>
+    <div className="bg-white dark:bg-[#111A2E] border border-slate-200 dark:border-[#1E2D4A] rounded-lg shadow-xs overflow-hidden">
+      <div className="p-3.5 border-b border-slate-200 dark:border-[#1E2D4A] flex items-center justify-between">
+        <div>
+          <h2 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+            <Shield size={16} className="text-[#4169E1]" />
+            <span>User Account Roles</span>
+          </h2>
+          <p className="text-[11px] text-slate-500 mt-0.5">Manage operator permissions for PrintQ campus workstations</p>
+        </div>
       </div>
 
       {error && (
-        <div className="p-3 rounded-xl bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400 text-xs font-semibold">
+        <div className="p-2.5 bg-rose-50 text-rose-700 text-xs border-b border-rose-100">
           {error}
         </div>
       )}
 
       <div className="overflow-x-auto">
-        <table className="w-full text-left text-xs">
-          <thead className="bg-[#E9EEF5] dark:bg-[#0D1527] text-slate-500 dark:text-slate-400 font-bold border-b border-slate-200 dark:border-slate-800">
+        <table className="w-full text-left text-xs whitespace-nowrap">
+          <thead className="bg-slate-50 dark:bg-[#0E1728] text-slate-500 dark:text-slate-400 font-semibold border-b border-slate-200 dark:border-[#1E2D4A]">
             <tr>
-              <th className="py-3 px-4">STUDENT NAME & USN</th>
-              <th className="py-3 px-4">COLLEGE EMAIL</th>
-              <th className="py-3 px-4">ROLE</th>
-              <th className="py-3 px-4">JOINED DATE</th>
-              <th className="py-3 px-4 text-right">ACTION</th>
+              <th className="py-2.5 px-3">STUDENT NAME & USN</th>
+              <th className="py-2.5 px-3">COLLEGE EMAIL</th>
+              <th className="py-2.5 px-3">ROLE</th>
+              <th className="py-2.5 px-3">REGISTERED</th>
+              <th className="py-2.5 px-3 text-right">ACTION</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-200/80 dark:divide-slate-800/80">
+          <tbody className="divide-y divide-slate-100 dark:divide-[#1E2D4A]/60">
             {users.map(u => (
-              <tr key={u.id} className="hover:bg-[#EAEFF6] dark:hover:bg-slate-800/30">
-                <td className="py-3 px-4">
-                  <p className="font-bold text-slate-800 dark:text-slate-200">{u.full_name || '—'}</p>
-                  <p className="font-mono text-slate-400 text-[11px]">{u.usn || '—'}</p>
+              <tr key={u.id} className="hover:bg-slate-50/70 dark:hover:bg-[#152238]/40">
+                <td className="py-2 px-3">
+                  <p className="font-medium text-slate-900 dark:text-white">{u.full_name || '—'}</p>
+                  <p className="font-mono text-slate-400 text-[10px]">{u.usn || '—'}</p>
                 </td>
-                <td className="py-3 px-4 font-medium text-slate-600 dark:text-slate-300">{u.email}</td>
-                <td className="py-3 px-4">
-                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${u.role === 'admin' ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300' : u.role === 'shopkeeper' ? 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300' : 'bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300'}`}>
+                <td className="py-2 px-3 font-medium text-slate-700 dark:text-slate-300">{u.email}</td>
+                <td className="py-2 px-3">
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-mono uppercase tracking-wider font-semibold ${
+                    u.role === 'admin'
+                      ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
+                      : u.role === 'shopkeeper'
+                      ? 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300'
+                      : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
+                  }`}>
                     {u.role}
                   </span>
                 </td>
-                <td className="py-3 px-4 text-slate-400">{u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}</td>
-                <td className="py-3 px-4 text-right">
+                <td className="py-2 px-3 text-slate-400 font-mono text-[11px]">
+                  {u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}
+                </td>
+                <td className="py-2 px-3 text-right">
                   {u.role === 'admin' ? (
-                    <span className="text-[11px] font-bold text-slate-400">Protected</span>
+                    <span className="text-[11px] text-slate-400">System Admin</span>
                   ) : u.role === 'student' ? (
                     <button
+                      type="button"
                       disabled={actionLoading === u.id}
                       onClick={() => setRole(u.id, 'shopkeeper')}
-                      className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
+                      className="h-7 px-2.5 bg-[#182B49] dark:bg-[#4169E1] hover:opacity-90 text-white rounded text-xs font-medium cursor-pointer disabled:opacity-50 shadow-xs"
                     >
-                      {actionLoading === u.id ? 'Updating...' : 'Make Shopkeeper'}
+                      {actionLoading === u.id ? 'Updating...' : 'Promote to Shopkeeper'}
                     </button>
                   ) : (
                     <button
+                      type="button"
                       disabled={actionLoading === u.id}
                       onClick={() => setRole(u.id, 'student')}
-                      className="bg-rose-500 hover:bg-rose-600 text-white px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
+                      className="h-7 px-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded text-xs font-medium cursor-pointer disabled:opacity-50 shadow-xs"
                     >
                       {actionLoading === u.id ? 'Updating...' : 'Revoke Access'}
                     </button>
@@ -1480,7 +1561,7 @@ function AdminPanel() {
 }
 
 // ---------------------------------------------------------------------------
-// Auth Modal (Sign In & Registration)
+// Authentication Modal (Sign In, Registration, & Demo Quick Login)
 // ---------------------------------------------------------------------------
 function AuthModal({ tab, setTab, onLogin, onRegister, onClose }) {
   const [fields, setFields] = useState({ email: '', password: '', confirm: '', full_name: '', usn: '' });
@@ -1498,7 +1579,7 @@ function AuthModal({ tab, setTab, onLogin, onRegister, onClose }) {
     if (tab === 'register') {
       const emailLower = fields.email.trim().toLowerCase();
       if (!emailLower.endsWith('@nmamit.in') && !emailLower.endsWith('@nitte.edu')) {
-        setError('Please enter a valid college email address.');
+        setError('Please enter a valid college email address ending with @nmamit.in or @nitte.edu');
         return;
       }
       if (fields.password !== fields.confirm) {
@@ -1517,7 +1598,7 @@ function AuthModal({ tab, setTab, onLogin, onRegister, onClose }) {
         await onRegister(fields.email, fields.password, fields.full_name.trim(), fields.usn.trim().toUpperCase());
       }
     } catch (err) {
-      setError(err.response?.data?.error || 'Something went wrong. Please try again.');
+      setError(err.response?.data?.error || 'Authentication failed. Please verify credentials.');
     }
     setLoading(false);
   };
@@ -1528,45 +1609,69 @@ function AuthModal({ tab, setTab, onLogin, onRegister, onClose }) {
     setFields({ email: '', password: '', confirm: '', full_name: '', usn: '' });
   };
 
+  const fillAndSubmitDemo = (email, password) => {
+    setFields(f => ({ ...f, email, password }));
+    setLoading(true);
+    setError('');
+    onLogin(email, password).catch(err => {
+      setError(err.response?.data?.error || 'Demo login failed');
+      setLoading(false);
+    });
+  };
+
   return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-[#F3F6FA] dark:bg-[#111A2E] border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-sm shadow-2xl overflow-y-auto max-h-[92vh]">
-        {/* Header */}
-        <div className="p-6 pb-0 text-center relative">
+    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+      <div className="bg-white dark:bg-[#111A2E] border border-slate-200 dark:border-[#1E2D4A] rounded-lg w-full max-w-sm shadow-lg overflow-y-auto max-h-[92vh]">
+
+        {/* Modal Header */}
+        <div className="p-5 pb-0 text-center relative">
           <button
+            type="button"
             onClick={onClose}
-            className="absolute right-4 top-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 transition-colors cursor-pointer"
+            className="absolute right-3.5 top-3.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 cursor-pointer"
           >
-            <X size={18} />
+            <X size={16} />
           </button>
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 to-indigo-500 text-white flex items-center justify-center mx-auto mb-2 shadow-md shadow-indigo-600/25">
-            <Printer size={22} />
+          <div className="w-10 h-10 rounded-lg bg-[#4169E1] text-white flex items-center justify-center mx-auto mb-2.5 shadow-xs">
+            <Printer size={20} strokeWidth={2.2} className="text-white" />
           </div>
-          <h2 className="text-xl font-extrabold text-slate-900 dark:text-white">Print<span className="text-indigo-600 dark:text-indigo-400">Q</span></h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Campus Document Printing Portal</p>
+          <h2 className="text-sm font-bold text-slate-900 dark:text-white">
+            Print<span className="text-[#4169E1] dark:text-[#6092FA]">Q</span> Workstation Login
+          </h2>
+          <p className="text-[11px] text-slate-400 mt-0.5">Central Campus Printing System</p>
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex mx-6 mt-5 bg-[#E5EBF2] dark:bg-slate-800/80 rounded-2xl p-1 border border-slate-200 dark:border-slate-700">
+        <div className="flex mx-5 mt-3 bg-slate-100 dark:bg-slate-800 rounded p-0.5 text-xs font-medium">
           <button
+            type="button"
             onClick={() => switchTab('login')}
-            className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${tab === 'login' ? 'bg-[#F3F6FA] dark:bg-slate-900 text-indigo-700 dark:text-indigo-300 shadow-xs' : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'}`}
+            className={`flex-1 py-1 rounded transition-colors cursor-pointer ${
+              tab === 'login'
+                ? 'bg-white dark:bg-[#182B49] text-slate-900 dark:text-white shadow-xs font-semibold'
+                : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
+            }`}
           >
             Sign In
           </button>
           <button
+            type="button"
             onClick={() => switchTab('register')}
-            className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${tab === 'register' ? 'bg-[#F3F6FA] dark:bg-slate-900 text-indigo-700 dark:text-indigo-300 shadow-xs' : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'}`}
+            className={`flex-1 py-1 rounded transition-colors cursor-pointer ${
+              tab === 'register'
+                ? 'bg-white dark:bg-[#182B49] text-slate-900 dark:text-white shadow-xs font-semibold'
+                : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
+            }`}
           >
-            New Account
+            Register Student
           </button>
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-5 space-y-3">
           {error && (
-            <div className="bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400 text-xs font-medium p-3 rounded-xl flex items-center gap-2 border border-rose-200 dark:border-rose-900/60">
-              <AlertCircle size={15} className="shrink-0" />
+            <div className="bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 text-xs p-2.5 rounded flex items-center gap-2 border border-rose-200 dark:border-rose-900/60">
+              <AlertCircle size={14} className="shrink-0" />
               <span>{error}</span>
             </div>
           )}
@@ -1574,80 +1679,79 @@ function AuthModal({ tab, setTab, onLogin, onRegister, onClose }) {
           {tab === 'register' && (
             <>
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Full Name</label>
-                <div className="relative">
-                  <User size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input
-                    value={fields.full_name}
-                    onChange={set('full_name')}
-                    type="text"
-                    required
-                    placeholder="e.g. John Doe"
-                    className="w-full bg-[#EAEFF5] dark:bg-[#0D1527] border border-slate-300 dark:border-slate-700 rounded-xl pl-9 pr-3 py-2 text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
-                  />
-                </div>
+                <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Full Name
+                </label>
+                <input
+                  value={fields.full_name}
+                  onChange={set('full_name')}
+                  type="text"
+                  required
+                  placeholder="e.g. John Doe"
+                  className="w-full h-8 bg-slate-50 dark:bg-[#0B111E] border border-slate-200 dark:border-[#1E2D4A] rounded px-2.5 text-xs text-slate-900 dark:text-white outline-none focus:border-[#4169E1]"
+                />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">College USN</label>
-                <div className="relative">
-                  <Hash size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input
-                    value={fields.usn}
-                    onChange={set('usn')}
-                    type="text"
-                    required
-                    placeholder="e.g. 4NM20CS001"
-                    className="w-full bg-[#EAEFF5] dark:bg-[#0D1527] border border-slate-300 dark:border-slate-700 rounded-xl pl-9 pr-3 py-2 text-xs font-mono uppercase font-bold text-slate-800 dark:text-white outline-none focus:border-indigo-500"
-                  />
-                </div>
+                <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  College USN
+                </label>
+                <input
+                  value={fields.usn}
+                  onChange={set('usn')}
+                  type="text"
+                  required
+                  placeholder="e.g. 4NM20CS001"
+                  className="w-full h-8 bg-slate-50 dark:bg-[#0B111E] border border-slate-200 dark:border-[#1E2D4A] rounded px-2.5 text-xs font-mono uppercase text-slate-900 dark:text-white outline-none focus:border-[#4169E1]"
+                />
               </div>
             </>
           )}
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Email Address</label>
-            <div className="relative">
-              <Mail size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
-                value={fields.email}
-                onChange={set('email')}
-                type="email"
-                required
-                placeholder={tab === 'register' ? 'XXXXXXXX@nmamit.in' : 'Email address'}
-                className="w-full bg-[#EAEFF5] dark:bg-[#0D1527] border border-slate-300 dark:border-slate-700 rounded-xl pl-9 pr-3 py-2 text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
-              />
-            </div>
+            <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              Email Address
+            </label>
+            <input
+              value={fields.email}
+              onChange={set('email')}
+              type="email"
+              required
+              placeholder={tab === 'register' ? 'yourname@nmamit.in' : 'Email address'}
+              className="w-full h-8 bg-slate-50 dark:bg-[#0B111E] border border-slate-200 dark:border-[#1E2D4A] rounded px-2.5 text-xs text-slate-900 dark:text-white outline-none focus:border-[#4169E1]"
+            />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Password</label>
+            <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              Password
+            </label>
             <div className="relative">
-              <Lock size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 value={fields.password}
                 onChange={set('password')}
                 type={showPwd ? 'text' : 'password'}
                 required
                 minLength={6}
-                placeholder="Min 6 characters"
-                className="w-full bg-[#EAEFF5] dark:bg-[#0D1527] border border-slate-300 dark:border-slate-700 rounded-xl pl-9 pr-9 py-2 text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                placeholder="Minimum 6 characters"
+                className="w-full h-8 bg-slate-50 dark:bg-[#0B111E] border border-slate-200 dark:border-[#1E2D4A] rounded pl-2.5 pr-8 text-xs text-slate-900 dark:text-white outline-none focus:border-[#4169E1]"
               />
               <button
                 type="button"
                 onClick={() => setShowPwd(!showPwd)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
               >
-                {showPwd ? <EyeOff size={15} /> : <Eye size={15} />}
+                {showPwd ? <EyeOff size={13} /> : <Eye size={13} />}
               </button>
             </div>
           </div>
 
           {tab === 'register' && (
             <div>
-              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Confirm Password</label>
+              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                Confirm Password
+              </label>
               <div className="relative">
-                <Lock size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   value={fields.confirm}
                   onChange={set('confirm')}
@@ -1655,79 +1759,128 @@ function AuthModal({ tab, setTab, onLogin, onRegister, onClose }) {
                   required
                   minLength={6}
                   placeholder="Re-enter password"
-                  className="w-full bg-[#EAEFF5] dark:bg-[#0D1527] border border-slate-300 dark:border-slate-700 rounded-xl pl-9 pr-9 py-2 text-xs font-medium text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                  className="w-full h-8 bg-slate-50 dark:bg-[#0B111E] border border-slate-200 dark:border-[#1E2D4A] rounded pl-2.5 pr-8 text-xs text-slate-900 dark:text-white outline-none focus:border-[#4169E1]"
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirm(!showConfirm)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
                 >
-                  {showConfirm ? <EyeOff size={15} /> : <Eye size={15} />}
+                  {showConfirm ? <EyeOff size={13} /> : <Eye size={13} />}
                 </button>
               </div>
-              {fields.confirm && fields.password !== fields.confirm && (
-                <p className="text-[11px] text-rose-500 mt-1 font-medium">Passwords do not match</p>
-              )}
-              {fields.confirm && fields.password === fields.confirm && (
-                <p className="text-[11px] text-emerald-600 dark:text-emerald-400 mt-1 font-bold flex items-center gap-1 font-mono">
-                  <Check size={12} /> Passwords match
-                </p>
-              )}
             </div>
           )}
 
           <button
             disabled={loading}
             type="submit"
-            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl text-xs sm:text-sm transition-all shadow-md shadow-indigo-600/25 cursor-pointer disabled:opacity-50 mt-2"
+            className="w-full bg-[#4169E1] hover:bg-[#3457C7] text-white font-medium py-2 rounded text-xs transition-colors cursor-pointer disabled:opacity-50 mt-1 shadow-xs"
           >
-            {loading ? 'Please wait...' : tab === 'login' ? 'Sign In' : 'Create Student Account'}
+            {loading ? 'Authenticating...' : tab === 'login' ? 'Sign In' : 'Create Account'}
           </button>
         </form>
 
-        <div className="px-6 pb-5 text-center">
-          <button
-            onClick={onClose}
-            className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 font-medium cursor-pointer"
-          >
-            Close
-          </button>
-        </div>
+        {/* Quick Demo Access Bar */}
+        {tab === 'login' && (
+          <div className="px-5 pb-5 pt-2 border-t border-slate-100 dark:border-[#1E2D4A]">
+            <p className="text-[10px] uppercase font-bold tracking-wider text-slate-400 mb-1.5 text-center">
+              Quick Demo Accounts
+            </p>
+            <div className="grid grid-cols-3 gap-1.5 text-[11px]">
+              <button
+                type="button"
+                onClick={() => fillAndSubmitDemo('student@netdotcom', 'student@netdotcom')}
+                className="py-1 px-1 rounded bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-medium text-center cursor-pointer"
+              >
+                Student
+              </button>
+              <button
+                type="button"
+                onClick={() => fillAndSubmitDemo('shopkeeper@netdotcom', 'shopkeeper@netdotcom')}
+                className="py-1 px-1 rounded bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-medium text-center cursor-pointer"
+              >
+                Shopkeeper
+              </button>
+              <button
+                type="button"
+                onClick={() => fillAndSubmitDemo('admin@netdotcom', 'admin@netdotcom')}
+                className="py-1 px-1 rounded bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-medium text-center cursor-pointer"
+              >
+                Admin
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Colourful Status Badge
+// Precision Status Badge
 // ---------------------------------------------------------------------------
 function StatusBadge({ status }) {
   const styles = {
-    'Awaiting Payment': 'bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 border-amber-200 dark:border-amber-900',
-    'In Queue': 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950/80 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800',
-    'Printing': 'bg-indigo-600 text-white dark:bg-indigo-600 dark:text-white animate-pulse border-indigo-500',
-    'Ready for Pickup': 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800 font-bold',
-    'Collected': 'bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-400 border-slate-300 dark:border-slate-700',
-    'Refunded': 'bg-rose-100 text-rose-800 dark:bg-rose-950/80 dark:text-rose-300 border-rose-200 dark:border-rose-900'
+    'Awaiting Payment': 'bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400 border-amber-200 dark:border-amber-900',
+    'In Queue': 'bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border-blue-200 dark:border-blue-900',
+    'Printing': 'bg-sky-50 text-sky-700 dark:bg-sky-950/60 dark:text-sky-300 border-sky-200 dark:border-sky-900',
+    'Ready for Pickup': 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800 font-semibold',
+    'Collected': 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border-slate-200 dark:border-slate-700',
+    'Refunded': 'bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400 border-rose-200 dark:border-rose-900'
+  };
+
+  const dots = {
+    'Awaiting Payment': 'bg-amber-500',
+    'In Queue': 'bg-[#4169E1]',
+    'Printing': 'bg-sky-500 animate-pulse',
+    'Ready for Pickup': 'bg-emerald-500',
+    'Collected': 'bg-slate-400',
+    'Refunded': 'bg-rose-500'
   };
 
   return (
-    <span className={`px-2.5 py-0.5 rounded-full font-mono text-[10px] uppercase font-bold tracking-wider inline-block border ${styles[status] || styles['Collected']}`}>
-      {status}
+    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono uppercase tracking-wider border ${styles[status] || styles['Collected']}`}>
+      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${dots[status] || 'bg-slate-400'}`} />
+      <span>{status}</span>
     </span>
   );
 }
 
-function ColourToggle({ label, active, onChange, color = 'indigo' }) {
-  const activeBg = color === 'emerald' ? 'bg-emerald-500' : color === 'amber' ? 'bg-amber-500' : 'bg-indigo-600';
+// ---------------------------------------------------------------------------
+// Compact Operational Switch Toggle
+// ---------------------------------------------------------------------------
+function ColourToggle({ label, active, onChange }) {
+  const isChecked = Boolean(active);
 
   return (
-    <label className="flex items-center gap-2.5 cursor-pointer select-none">
-      <div className={`relative w-9 h-5 rounded-full transition-colors ${active ? activeBg : 'bg-slate-300 dark:bg-slate-700'}`}>
-        <div className={`absolute top-0.5 left-0.5 bg-white w-4 h-4 rounded-full transition-transform shadow-xs ${active ? 'translate-x-4' : ''}`}></div>
+    <label className="inline-flex items-center gap-2 cursor-pointer select-none group">
+      <input
+        type="checkbox"
+        className="sr-only"
+        checked={isChecked}
+        onChange={e => onChange(e.target.checked)}
+      />
+      <div
+        className={`relative inline-flex items-center w-8 h-4.5 rounded-full transition-colors duration-150 ease-in-out border shrink-0 ${
+          isChecked
+            ? 'bg-[#4169E1] border-[#3457C7] dark:bg-[#4169E1] dark:border-[#5277EC]'
+            : 'bg-slate-200 border-slate-300 dark:bg-slate-700 dark:border-slate-600'
+        }`}
+        style={{ width: '34px', height: '18px' }}
+      >
+        <span
+          className="inline-block rounded-full bg-white shadow-xs transition-transform duration-150 ease-in-out"
+          style={{
+            width: '14px',
+            height: '14px',
+            transform: isChecked ? 'translateX(17px)' : 'translateX(2px)'
+          }}
+        />
       </div>
-      <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{label}</span>
-      <input type="checkbox" className="hidden" checked={!!active} onChange={e => onChange(e.target.checked)} />
+      <span className="text-xs font-medium text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">
+        {label}
+      </span>
     </label>
   );
 }
