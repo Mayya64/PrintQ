@@ -13,15 +13,6 @@ PrintQ is a web application designed for campus print shops and students. It all
 - **Admin Panel**: Role management for promoting students to staff or administrators.
 - **Dark Mode**: Supports both light and dark themes with preference persisted in local storage.
 
-## Security Controls
-
-- **Path Traversal Protection**: Uploaded and processed files are verified against the allowed directories using canonical path resolution (`is_safe_path`), preventing arbitrary file reads or deletions.
-- **Rate Limiting**: Sliding-window rate limiting on login, registration, file uploads, and order creation to prevent brute-force attacks and abuse.
-- **Session Hardening**: Sessions use `HttpOnly` and `SameSite=Lax` cookies, with a 50MB request size limit to prevent denial-of-service attempts.
-- **Password Hashing**: Passwords are saved as cryptographic hashes using PBKDF2 with SHA-256 via Werkzeug.
-- **Security Headers**: Standard response headers (`X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `X-XSS-Protection`, `Referrer-Policy`) are applied on every request.
-- **Role-Based Access**: Backend endpoints require authentication and role authorization (`@login_required`, `@shopkeeper_required`, `@admin_required`). Students cannot view or modify orders belonging to other users.
-
 ## Tech Stack
 
 - **Backend**: Python 3, Flask, SQLite, pypdf, Pillow, Werkzeug
@@ -44,45 +35,8 @@ run.bat
 
 This starts both the Flask backend (port 5000) and the Vite frontend (port 5173).
 
----
-
-### Manual Setup
-
-#### 1. Backend
-
-```bash
-cd backend
-pip install -r requirements.txt
-copy .env.example .env    # On Linux/macOS: cp .env.example .env
-python app.py
-```
-
-The backend server runs at `http://localhost:5000`.
-
-#### 2. Frontend
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
 The frontend development server runs at `http://localhost:5173`.
 
-## Environment Variables
-
-Copy `.env.example` to `.env` in the root or `backend/` directory to configure environment variables:
-
-```env
-# Secret key used for session signing
-SECRET_KEY=change-this-to-a-secure-random-string-in-production
-
-# Allowed CORS origins (comma-separated)
-CORS_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
-
-# Flask environment
-FLASK_ENV=development
-```
 
 ## Demo Accounts
 
@@ -118,6 +72,5 @@ PrintQ/
 └── run.bat                 # Windows startup script
 ```
 
-## License
-
-MIT License.
+##Project For HACKLOOP 26
+~by Team IDK
