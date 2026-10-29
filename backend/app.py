@@ -1,10 +1,13 @@
 import os
 import io
 import sqlite3
+import shutil
 import random
 import math
 import re
-from datetime import datetime
+import time
+import threading
+from datetime import datetime, timedelta
 from functools import wraps
 from flask import Flask, request, jsonify, g, session, send_file
 from flask_cors import CORS
@@ -20,14 +23,63 @@ CORS(app, supports_credentials=True, origins=['http://localhost:5173', 'http://1
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = os.path.dirname(BASE_DIR)
 
-TEMP_FOLDER = os.path.join(ROOT_DIR, 'temp_uploads')
-FINAL_FOLDER = os.path.join(ROOT_DIR, 'final_uploads')
-DB_FILE = os.path.join(ROOT_DIR, 'printq.db')
+# ---------------------------------------------------------------------------
+# Data directory — stored in %LOCALAPPDATA%\PrintQ so it is never inside
+# OneDrive / Dropbox or any cloud-sync folder, and survives project moves.
+# Falls back gracefully on Linux/macOS.
+# ---------------------------------------------------------------------------
+_local_app_data = (
+    os.environ.get('LOCALAPPDATA')
+    or os.environ.get('XDG_DATA_HOME')
+    or os.path.join(os.path.expanduser('~'), '.local', 'share')
+)
+DATA_DIR     = os.path.join(_local_app_data, 'PrintQ')
+TEMP_FOLDER  = os.path.join(DATA_DIR, 'temp_uploads')
+FINAL_FOLDER = os.path.join(DATA_DIR, 'final_uploads')
+DB_FILE      = os.path.join(DATA_DIR, 'printq.db')
+LEGACY_DB_FILE = os.path.join(ROOT_DIR, 'printq.db')
+LEGACY_TEMP_FOLDER = os.path.join(ROOT_DIR, 'temp_uploads')
+LEGACY_FINAL_FOLDER = os.path.join(ROOT_DIR, 'final_uploads')
+
+# How long to keep abandoned uploads before the cleanup job removes them.
+TEMP_FILE_MAX_AGE_HOURS = 2
+CLEANUP_INTERVAL_SECONDS = 60 * 60
 
 ALLOWED_EXTENSIONS = {'.pdf', '.png', '.jpg', '.jpeg', '.webp', '.bmp'}
 
-os.makedirs(TEMP_FOLDER, exist_ok=True)
+os.makedirs(DATA_DIR,     exist_ok=True)
+os.makedirs(TEMP_FOLDER,  exist_ok=True)
 os.makedirs(FINAL_FOLDER, exist_ok=True)
+
+def migrate_legacy_database():
+    if os.path.exists(DB_FILE) or not os.path.isfile(LEGACY_DB_FILE):
+        return
+
+    source = sqlite3.connect(LEGACY_DB_FILE)
+    destination = sqlite3.connect(DB_FILE)
+    try:
+        source.backup(destination)
+        integrity = destination.execute('PRAGMA integrity_check').fetchone()[0]
+        if integrity != 'ok':
+            raise sqlite3.DatabaseError(f'Legacy database integrity check failed: {integrity}')
+    finally:
+        destination.close()
+        source.close()
+    try:
+        os.remove(LEGACY_DB_FILE)
+    except OSError as e:
+        app.logger.warning("Migrated database but could not remove old copy %s: %s", LEGACY_DB_FILE, e)
+    else:
+        for suffix in ('-wal', '-shm'):
+            sidecar = LEGACY_DB_FILE + suffix
+            if os.path.exists(sidecar):
+                try:
+                    os.remove(sidecar)
+                except OSError as e:
+                    app.logger.warning("Could not remove legacy database sidecar %s: %s", sidecar, e)
+
+
+migrate_legacy_database()
 
 def get_db():
     db = getattr(g, '_database', None)
@@ -46,6 +98,100 @@ def add_column_if_not_exists(cursor, table, column, definition):
     cols = [row[1] for row in cursor.execute(f'PRAGMA table_info({table})').fetchall()]
     if column not in cols:
         cursor.execute(f'ALTER TABLE {table} ADD COLUMN {column} {definition}')
+
+# ---------------------------------------------------------------------------
+# File cleanup — purge abandoned temporary uploads automatically
+# ---------------------------------------------------------------------------
+
+def purge_old_files(folder: str, max_age_hours: float) -> dict:
+    """Delete files in *folder* that are older than *max_age_hours*.
+    Returns a summary dict with counts of deleted files and freed bytes.
+    """
+    cutoff = time.time() - max_age_hours * 3600
+    deleted, freed, errors = 0, 0, []
+    if not os.path.isdir(folder):
+        return {'deleted': 0, 'freed_bytes': 0, 'errors': []}
+    for fname in os.listdir(folder):
+        fpath = os.path.join(folder, fname)
+        try:
+            if os.path.isfile(fpath) and os.path.getmtime(fpath) < cutoff:
+                size = os.path.getsize(fpath)
+                os.remove(fpath)
+                deleted += 1
+                freed   += size
+        except OSError as e:
+            app.logger.warning("Could not remove stale upload %s: %s", fpath, e)
+            errors.append(f"{fpath}: {e}")
+    return {'deleted': deleted, 'freed_bytes': freed, 'errors': errors}
+
+
+def migrate_legacy_uploads():
+    with app.app_context():
+        db = get_db()
+        cursor = db.cursor()
+        for old_folder, new_folder, column in (
+            (LEGACY_TEMP_FOLDER, TEMP_FOLDER, 'tmp_filename'),
+            (LEGACY_FINAL_FOLDER, FINAL_FOLDER, 'sliced_filename'),
+        ):
+            if not os.path.isdir(old_folder):
+                continue
+            for entry in os.scandir(old_folder):
+                if not entry.is_file():
+                    continue
+                old_path = os.path.abspath(entry.path)
+                new_path = os.path.join(new_folder, entry.name)
+                if os.path.exists(new_path):
+                    name, extension = os.path.splitext(entry.name)
+                    suffix = 1
+                    while os.path.exists(new_path):
+                        new_path = os.path.join(new_folder, f'{name}_{suffix}{extension}')
+                        suffix += 1
+                shutil.copy2(old_path, new_path)
+                cursor.execute(
+                    f'UPDATE orders SET {column}=? WHERE {column}=?',
+                    (new_path, old_path),
+                )
+                db.commit()
+                os.remove(old_path)
+
+
+_cleanup_lock = threading.Lock()
+_last_cleanup_at = 0.0
+
+
+def run_startup_cleanup():
+    global _last_cleanup_at
+    result = purge_old_files(TEMP_FOLDER, TEMP_FILE_MAX_AGE_HOURS)
+    _last_cleanup_at = time.monotonic()
+    app.logger.info(
+        "Temporary upload cleanup removed %d files (%d KB freed)",
+        result['deleted'],
+        result['freed_bytes'] // 1024,
+    )
+    return result
+
+
+@app.before_request
+def run_scheduled_cleanup():
+    global _last_cleanup_at
+    now = time.monotonic()
+    if now - _last_cleanup_at < CLEANUP_INTERVAL_SECONDS:
+        return
+    if not _cleanup_lock.acquire(blocking=False):
+        return
+    try:
+        now = time.monotonic()
+        if now - _last_cleanup_at >= CLEANUP_INTERVAL_SECONDS:
+            result = purge_old_files(TEMP_FOLDER, TEMP_FILE_MAX_AGE_HOURS)
+            _last_cleanup_at = now
+            app.logger.info(
+                "Scheduled temporary upload cleanup removed %d files (%d KB freed)",
+                result['deleted'],
+                result['freed_bytes'] // 1024,
+            )
+    finally:
+        _cleanup_lock.release()
+
 
 def init_db():
     with app.app_context():
@@ -141,6 +287,8 @@ def init_db():
         db.commit()
 
 init_db()
+migrate_legacy_uploads()
+run_startup_cleanup()
 
 # ---------------------------------------------------------------------------
 # Auth decorators
@@ -677,6 +825,17 @@ def admin_set_role(user_id):
     cursor.execute('UPDATE users SET role=? WHERE id=?', (new_role, user_id))
     db.commit()
     return jsonify({'success': True, 'user_id': user_id, 'new_role': new_role})
+
+
+@app.route('/api/admin/cleanup', methods=['POST'])
+@admin_required
+def admin_cleanup():
+    """Manually trigger a file cleanup from the admin panel."""
+    result = purge_old_files(TEMP_FOLDER, TEMP_FILE_MAX_AGE_HOURS)
+    return jsonify({
+        'success': not result['errors'],
+        'temp_uploads': result,
+    }), (200 if not result['errors'] else 500)
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

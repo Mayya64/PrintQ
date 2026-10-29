@@ -37,6 +37,20 @@ This starts both the Flask backend (port 5000) and the Vite frontend (port 5173)
 
 The frontend development server runs at `http://localhost:5173`.
 
+## Local Data and File Cleanup
+
+The backend stores its SQLite database and uploaded files outside the project
+directory so they are not synchronized by OneDrive or other cloud-storage
+services. On Windows, the default location is `%LOCALAPPDATA%\PrintQ`. On
+Linux and macOS, it uses `$XDG_DATA_HOME/PrintQ`, or
+`~/.local/share/PrintQ` when `XDG_DATA_HOME` is not set.
+
+On first startup, existing `printq.db`, `temp_uploads`, and `final_uploads`
+data in the project directory are migrated to that location. Temporary uploads
+older than two hours are removed at startup and at hourly intervals while the
+backend is serving requests. Completed print files are not automatically
+deleted.
+
 
 ## Demo Accounts
 
@@ -64,13 +78,14 @@ PrintQ/
 │   ├── package.json        # Node dependencies and scripts
 │   ├── vite.config.js      # Vite configuration
 │   └── tailwind.config.js  # Tailwind CSS configuration
-├── temp_uploads/           # Staging directory for uploaded documents
-├── final_uploads/          # Sliced print-ready files
 ├── .env.example            # Root environment template
 ├── .gitignore              # Git ignore rules
 ├── README.md               # Project documentation
 └── run.bat                 # Windows startup script
 ```
+
+Application data is kept separately from the project in the user data
+directory described above.
 
 ##Project For HACKLOOP 26
 ~by Team IDK
