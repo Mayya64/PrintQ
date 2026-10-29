@@ -15,8 +15,8 @@ PrintQ is a web application designed for campus print shops and students. It all
 
 ## Tech Stack
 
-- **Backend**: Python 3, Flask, SQLite, pypdf, Pillow, Werkzeug
-- **Frontend**: React 19, Vite, Tailwind CSS, Lucide icons, Axios
+- **Backend**: Python 3, Flask, SQLite, pypdf.
+- **Frontend**: React 19, Vite, Tailwind CSS.
 
 ## Getting Started
 
